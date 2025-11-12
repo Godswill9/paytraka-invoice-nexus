@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { getInvoices, deleteInvoice } from "@/services/invoicesService";
 import type { Invoice } from "@/services/invoicesService";
 import { InvoiceDialog } from "@/components/InvoiceDialog";
+import { InvoiceViewDialog } from "@/components/InvoiceViewDialog";
 import { Plus, Search, Eye, Download, Edit, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/utils/currency";
 import { generateInvoicePDF } from "@/utils/pdfGenerator";
@@ -25,7 +26,9 @@ export default function Invoices() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | undefined>();
+  const [viewingInvoice, setViewingInvoice] = useState<Invoice | undefined>();
 
   useEffect(() => {
     loadInvoices();
@@ -149,7 +152,15 @@ export default function Invoices() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1 sm:gap-2">
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 w-8 p-0"
+                          onClick={() => {
+                            setViewingInvoice(invoice);
+                            setViewDialogOpen(true);
+                          }}
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hidden sm:flex" onClick={() => handleDownloadPDF(invoice)}>
@@ -177,6 +188,11 @@ export default function Invoices() {
         onOpenChange={handleDialogClose}
         invoice={editingInvoice}
         onSuccess={loadInvoices}
+      />
+      <InvoiceViewDialog
+        open={viewDialogOpen}
+        onOpenChange={setViewDialogOpen}
+        invoice={viewingInvoice || null}
       />
     </>
   );

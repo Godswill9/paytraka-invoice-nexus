@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { getReceipts } from "@/services/receiptsService";
 import type { Receipt } from "@/services/receiptsService";
+import { ReceiptViewDialog } from "@/components/ReceiptViewDialog";
 import { Plus, Search, Eye, Download } from "lucide-react";
 import { formatCurrency } from "@/utils/currency";
 import { generateReceiptPDF } from "@/utils/pdfGenerator";
@@ -15,6 +16,8 @@ export default function Receipts() {
   const [receipts, setReceipts] = useState<Receipt[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [viewingReceipt, setViewingReceipt] = useState<Receipt | undefined>();
 
   useEffect(() => {
     loadReceipts();
@@ -109,7 +112,15 @@ export default function Receipts() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 w-8 p-0"
+                          onClick={() => {
+                            setViewingReceipt(receipt);
+                            setViewDialogOpen(true);
+                          }}
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hidden sm:flex" onClick={() => handleDownloadPDF(receipt)}>
@@ -124,6 +135,11 @@ export default function Receipts() {
           </div>
         </CardContent>
       </Card>
+      <ReceiptViewDialog
+        open={viewDialogOpen}
+        onOpenChange={setViewDialogOpen}
+        receipt={viewingReceipt || null}
+      />
     </div>
   );
 }

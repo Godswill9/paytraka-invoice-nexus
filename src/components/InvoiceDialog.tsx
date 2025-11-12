@@ -24,22 +24,46 @@ export function InvoiceDialog({ open, onOpenChange, invoice, onSuccess }: Invoic
   const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({
-    customerId: invoice?.customerId || "",
-    date: invoice?.date || new Date().toISOString().split("T")[0],
-    dueDate: invoice?.dueDate || "",
-    status: invoice?.status || "draft",
-    discount: invoice?.discount?.toString() || "0",
-    deliveryFee: invoice?.deliveryFee?.toString() || "0",
-    notes: invoice?.notes || "",
+    customerId: "",
+    date: new Date().toISOString().split("T")[0],
+    dueDate: "",
+    status: "draft" as "draft" | "sent" | "paid" | "overdue" | "cancelled",
+    discount: "0",
+    deliveryFee: "0",
+    notes: "",
   });
 
-  const [lineItems, setLineItems] = useState<InvoiceItem[]>(
-    invoice?.items || []
-  );
+  const [lineItems, setLineItems] = useState<InvoiceItem[]>([]);
 
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (invoice) {
+      setFormData({
+        customerId: invoice.customerId,
+        date: invoice.date,
+        dueDate: invoice.dueDate,
+        status: invoice.status,
+        discount: invoice.discount.toString(),
+        deliveryFee: invoice.deliveryFee.toString(),
+        notes: invoice.notes || "",
+      });
+      setLineItems(invoice.items);
+    } else {
+      setFormData({
+        customerId: "",
+        date: new Date().toISOString().split("T")[0],
+        dueDate: "",
+        status: "draft",
+        discount: "0",
+        deliveryFee: "0",
+        notes: "",
+      });
+      setLineItems([]);
+    }
+  }, [invoice, open]);
 
   const loadData = async () => {
     const [customersData, productsData] = await Promise.all([
