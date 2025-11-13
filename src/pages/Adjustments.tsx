@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getCreditNotes, getDebitNotes } from "@/services/adjustmentsService";
 import type { CreditNote, DebitNote } from "@/services/adjustmentsService";
+import { CreditNoteDialog } from "@/components/CreditNoteDialog";
+import { DebitNoteDialog } from "@/components/DebitNoteDialog";
 import { Plus, Eye } from "lucide-react";
 import { formatCurrency } from "@/utils/currency";
 import { toast } from "sonner";
@@ -14,6 +16,8 @@ export default function Adjustments() {
   const [creditNotes, setCreditNotes] = useState<CreditNote[]>([]);
   const [debitNotes, setDebitNotes] = useState<DebitNote[]>([]);
   const [loading, setLoading] = useState(true);
+  const [creditDialogOpen, setCreditDialogOpen] = useState(false);
+  const [debitDialogOpen, setDebitDialogOpen] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -43,6 +47,17 @@ export default function Adjustments() {
         <p className="text-sm sm:text-base text-muted-foreground">Manage invoice adjustments</p>
       </div>
 
+      <CreditNoteDialog
+        open={creditDialogOpen}
+        onOpenChange={setCreditDialogOpen}
+        onSuccess={loadData}
+      />
+      <DebitNoteDialog
+        open={debitDialogOpen}
+        onOpenChange={setDebitDialogOpen}
+        onSuccess={loadData}
+      />
+
       <Tabs defaultValue="credit" className="space-y-4">
         <TabsList>
           <TabsTrigger value="credit">Credit Notes</TabsTrigger>
@@ -56,7 +71,7 @@ export default function Adjustments() {
                 <CardTitle>Credit Notes</CardTitle>
                 <CardDescription>Notes for reducing invoice amounts</CardDescription>
               </div>
-              <Button>
+              <Button onClick={() => setCreditDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Create Credit Note
               </Button>
@@ -111,7 +126,7 @@ export default function Adjustments() {
                 <CardTitle>Debit Notes</CardTitle>
                 <CardDescription>Notes for increasing invoice amounts</CardDescription>
               </div>
-              <Button>
+              <Button onClick={() => setDebitDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Create Debit Note
               </Button>

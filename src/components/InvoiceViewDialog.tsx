@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import type { Invoice } from "@/services/invoicesService";
 import { formatCurrency } from "@/utils/currency";
-import { Download, Printer } from "lucide-react";
+import { Download, Printer, QrCode } from "lucide-react";
 import { generateInvoicePDF } from "@/utils/pdfGenerator";
 import { useEffect, useState } from "react";
 import { getSettings, type BusinessSettings } from "@/services/settingsService";
@@ -26,6 +26,14 @@ export function InvoiceViewDialog({ open, onOpenChange, invoice }: InvoiceViewDi
   }, []);
 
   if (!invoice) return null;
+
+  const generateIRN = () => {
+    const timestamp = Date.now().toString();
+    const hash = Math.random().toString(36).substring(2, 10).toUpperCase();
+    return `${invoice.invoiceNumber.replace(/[^A-Z0-9]/g, '')}-${hash}-${new Date().toISOString().split('T')[0].replace(/-/g, '')}`;
+  };
+
+  const irn = generateIRN();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -127,8 +135,30 @@ export function InvoiceViewDialog({ open, onOpenChange, invoice }: InvoiceViewDi
             </div>
           )}
 
+          {/* IRN and QR Code Section */}
+          <div className="mt-6 p-4 bg-muted rounded-lg">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold flex items-center gap-2">
+                  <QrCode className="h-4 w-4" />
+                  Invoice Reference Number (IRN)
+                </h4>
+                <p className="text-xs font-mono bg-background p-2 rounded border">{irn}</p>
+              </div>
+              <div className="flex items-center justify-center">
+                <div className="bg-white p-3 rounded border">
+                  <img 
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(irn)}`}
+                    alt="Invoice QR Code"
+                    className="h-24 w-24"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* FIRS Footer */}
-          <div className="flex items-center justify-center gap-2 p-4 bg-accent rounded-lg mt-6">
+          <div className="flex items-center justify-center gap-2 p-4 bg-accent rounded-lg mt-4">
             <img src="https://einvoice.firs.gov.ng/favicon.png" alt="FIRS" className="h-6 w-6" />
             <span className="text-sm font-medium">FIRS Compliant</span>
           </div>

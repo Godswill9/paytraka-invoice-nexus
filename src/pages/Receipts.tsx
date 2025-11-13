@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { getReceipts } from "@/services/receiptsService";
 import type { Receipt } from "@/services/receiptsService";
 import { ReceiptViewDialog } from "@/components/ReceiptViewDialog";
+import { ReceiptDialog } from "@/components/ReceiptDialog";
 import { Plus, Search, Eye, Download } from "lucide-react";
 import { formatCurrency } from "@/utils/currency";
 import { generateReceiptPDF } from "@/utils/pdfGenerator";
@@ -16,6 +17,7 @@ export default function Receipts() {
   const [receipts, setReceipts] = useState<Receipt[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [viewingReceipt, setViewingReceipt] = useState<Receipt | undefined>();
 
@@ -60,7 +62,7 @@ export default function Receipts() {
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Receipts</h1>
           <p className="text-sm sm:text-base text-muted-foreground">Track payment receipts</p>
         </div>
-        <Button>
+        <Button onClick={() => setDialogOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Create Receipt
         </Button>
@@ -135,6 +137,11 @@ export default function Receipts() {
           </div>
         </CardContent>
       </Card>
+      <ReceiptDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onSuccess={loadReceipts}
+      />
       <ReceiptViewDialog
         open={viewDialogOpen}
         onOpenChange={setViewDialogOpen}
