@@ -36,7 +36,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <main className="flex-1 flex flex-col">
-          <header className="sticky top-0 z-50 h-14 border-b border-border bg-card flex items-center px-4 gap-2">
+          <header className="sticky top-0 z-40 h-14 border-b border-border bg-card flex items-center px-4 gap-2">
             <SidebarTrigger />
             <div className="flex items-center gap-2 ml-auto">
               <div className="flex items-center gap-2">
