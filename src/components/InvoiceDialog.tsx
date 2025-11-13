@@ -108,21 +108,27 @@ export function InvoiceDialog({ open, onOpenChange, invoice, onSuccess }: Invoic
         updated[index].productName = product.name;
         updated[index].unitPrice = product.price;
         updated[index].taxRate = product.taxRate;
+        updated[index].quantity = updated[index].quantity || 1;
       }
     }
     
-    if (field === "quantity" || field === "unitPrice") {
-      updated[index].total = updated[index].quantity * updated[index].unitPrice;
-    }
+    // Always recalculate total with proper NaN handling
+    const quantity = Number(updated[index].quantity) || 0;
+    const unitPrice = Number(updated[index].unitPrice) || 0;
+    updated[index].total = quantity * unitPrice;
     
     setLineItems(updated);
   };
 
   const calculateTotals = () => {
-    const subtotal = lineItems.reduce((sum, item) => sum + item.total, 0);
-    const tax = lineItems.reduce((sum, item) => sum + (item.total * item.taxRate / 100), 0);
-    const discount = parseFloat(formData.discount) || 0;
-    const deliveryFee = parseFloat(formData.deliveryFee) || 0;
+    const subtotal = lineItems.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
+    const tax = lineItems.reduce((sum, item) => {
+      const itemTotal = Number(item.total) || 0;
+      const taxRate = Number(item.taxRate) || 0;
+      return sum + (itemTotal * taxRate / 100);
+    }, 0);
+    const discount = Number(formData.discount) || 0;
+    const deliveryFee = Number(formData.deliveryFee) || 0;
     const total = subtotal + tax - discount + deliveryFee;
     
     return { subtotal, tax, discount, deliveryFee, total };
@@ -294,31 +300,33 @@ export function InvoiceDialog({ open, onOpenChange, invoice, onSuccess }: Invoic
                       <TableCell>
                         <Input
                           type="number"
-                          min="1"
+                          min="0"
                           className="h-8"
-                          value={item.quantity}
-                          onChange={(e) => updateLineItem(index, "quantity", parseInt(e.target.value))}
+                          value={item.quantity || ""}
+                          onChange={(e) => updateLineItem(index, "quantity", e.target.value === "" ? 0 : parseInt(e.target.value))}
                         />
                       </TableCell>
                       <TableCell>
                         <Input
                           type="number"
                           step="0.01"
+                          min="0"
                           className="h-8"
-                          value={item.unitPrice}
-                          onChange={(e) => updateLineItem(index, "unitPrice", parseFloat(e.target.value))}
+                          value={item.unitPrice || ""}
+                          onChange={(e) => updateLineItem(index, "unitPrice", e.target.value === "" ? 0 : parseFloat(e.target.value))}
                         />
                       </TableCell>
                       <TableCell>
                         <Input
                           type="number"
                           step="0.01"
+                          min="0"
                           className="h-8"
-                          value={item.taxRate}
-                          onChange={(e) => updateLineItem(index, "taxRate", parseFloat(e.target.value))}
+                          value={item.taxRate || ""}
+                          onChange={(e) => updateLineItem(index, "taxRate", e.target.value === "" ? 0 : parseFloat(e.target.value))}
                         />
                       </TableCell>
-                      <TableCell>₦{item.total.toLocaleString()}</TableCell>
+                      <TableCell>₦{(item.total || 0).toLocaleString()}</TableCell>
                       <TableCell>
                         <Button
                           type="button"
