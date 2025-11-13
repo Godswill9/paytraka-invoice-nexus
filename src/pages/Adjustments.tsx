@@ -8,6 +8,8 @@ import { getCreditNotes, getDebitNotes } from "@/services/adjustmentsService";
 import type { CreditNote, DebitNote } from "@/services/adjustmentsService";
 import { CreditNoteDialog } from "@/components/CreditNoteDialog";
 import { DebitNoteDialog } from "@/components/DebitNoteDialog";
+import { CreditNoteViewDialog } from "@/components/CreditNoteViewDialog";
+import { DebitNoteViewDialog } from "@/components/DebitNoteViewDialog";
 import { Plus, Eye } from "lucide-react";
 import { formatCurrency } from "@/utils/currency";
 import { toast } from "sonner";
@@ -18,6 +20,10 @@ export default function Adjustments() {
   const [loading, setLoading] = useState(true);
   const [creditDialogOpen, setCreditDialogOpen] = useState(false);
   const [debitDialogOpen, setDebitDialogOpen] = useState(false);
+  const [viewCreditDialogOpen, setViewCreditDialogOpen] = useState(false);
+  const [viewDebitDialogOpen, setViewDebitDialogOpen] = useState(false);
+  const [selectedCreditNote, setSelectedCreditNote] = useState<CreditNote | null>(null);
+  const [selectedDebitNote, setSelectedDebitNote] = useState<DebitNote | null>(null);
 
   useEffect(() => {
     loadData();
@@ -56,6 +62,16 @@ export default function Adjustments() {
         open={debitDialogOpen}
         onOpenChange={setDebitDialogOpen}
         onSuccess={loadData}
+      />
+      <CreditNoteViewDialog
+        open={viewCreditDialogOpen}
+        onOpenChange={setViewCreditDialogOpen}
+        creditNote={selectedCreditNote}
+      />
+      <DebitNoteViewDialog
+        open={viewDebitDialogOpen}
+        onOpenChange={setViewDebitDialogOpen}
+        debitNote={selectedDebitNote}
       />
 
       <Tabs defaultValue="credit" className="space-y-4">
@@ -106,7 +122,15 @@ export default function Adjustments() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 w-8 p-0"
+                          onClick={() => {
+                            setSelectedCreditNote(note);
+                            setViewCreditDialogOpen(true);
+                          }}
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
                       </TableCell>
@@ -161,7 +185,15 @@ export default function Adjustments() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 w-8 p-0"
+                          onClick={() => {
+                            setSelectedDebitNote(note);
+                            setViewDebitDialogOpen(true);
+                          }}
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
                       </TableCell>

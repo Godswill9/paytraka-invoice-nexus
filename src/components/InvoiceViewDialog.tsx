@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import type { Invoice } from "@/services/invoicesService";
 import { formatCurrency } from "@/utils/currency";
-import { Download, Printer, QrCode } from "lucide-react";
+import { Download, Printer } from "lucide-react";
 import { generateInvoicePDF } from "@/utils/pdfGenerator";
 import { useEffect, useState } from "react";
 import { getSettings, type BusinessSettings } from "@/services/settingsService";
@@ -43,7 +43,7 @@ export function InvoiceViewDialog({ open, onOpenChange, invoice }: InvoiceViewDi
         </DialogHeader>
 
         <div className="space-y-6 p-6 bg-card">
-          {/* Header with Logo */}
+          {/* Header with Logo and QR Code */}
           <div className="flex justify-between items-start">
             <div>
               {settings?.logo && (
@@ -54,11 +54,21 @@ export function InvoiceViewDialog({ open, onOpenChange, invoice }: InvoiceViewDi
               <p className="text-sm text-muted-foreground">{settings?.phone}</p>
               <p className="text-sm text-muted-foreground">{settings?.address}</p>
             </div>
-            <div className="text-right">
-              <h3 className="text-xl font-bold text-primary">INVOICE</h3>
-              <p className="text-sm">#{invoice.invoiceNumber}</p>
-              <p className="text-xs text-muted-foreground">Date: {invoice.date}</p>
-              <p className="text-xs text-muted-foreground">Due: {invoice.dueDate}</p>
+            <div className="text-right space-y-3">
+              <div className="bg-white p-2 rounded border inline-block">
+                <img 
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(irn)}`}
+                  alt="Invoice QR Code"
+                  className="h-24 w-24"
+                />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-primary">INVOICE</h3>
+                <p className="text-sm">#{invoice.invoiceNumber}</p>
+                <p className="text-xs font-mono text-muted-foreground break-all max-w-[200px]">IRN: {irn}</p>
+                <p className="text-xs text-muted-foreground mt-2">Date: {invoice.date}</p>
+                <p className="text-xs text-muted-foreground">Due: {invoice.dueDate}</p>
+              </div>
             </div>
           </div>
 
@@ -135,27 +145,6 @@ export function InvoiceViewDialog({ open, onOpenChange, invoice }: InvoiceViewDi
             </div>
           )}
 
-          {/* IRN and QR Code Section */}
-          <div className="mt-6 p-4 bg-muted rounded-lg">
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <h4 className="text-sm font-semibold flex items-center gap-2">
-                  <QrCode className="h-4 w-4" />
-                  Invoice Reference Number (IRN)
-                </h4>
-                <p className="text-xs font-mono bg-background p-2 rounded border">{irn}</p>
-              </div>
-              <div className="flex items-center justify-center">
-                <div className="bg-white p-3 rounded border">
-                  <img 
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(irn)}`}
-                    alt="Invoice QR Code"
-                    className="h-24 w-24"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* FIRS Footer */}
           <div className="flex items-center justify-center gap-2 p-4 bg-accent rounded-lg mt-4">

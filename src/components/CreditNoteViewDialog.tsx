@@ -1,20 +1,19 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import type { Receipt } from "@/services/receiptsService";
+import type { CreditNote } from "@/services/adjustmentsService";
 import { formatCurrency } from "@/utils/currency";
 import { Download, Printer } from "lucide-react";
-import { generateReceiptPDF } from "@/utils/pdfGenerator";
 import { useEffect, useState } from "react";
 import { getSettings, type BusinessSettings } from "@/services/settingsService";
 
-interface ReceiptViewDialogProps {
+interface CreditNoteViewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  receipt: Receipt | null;
+  creditNote: CreditNote | null;
 }
 
-export function ReceiptViewDialog({ open, onOpenChange, receipt }: ReceiptViewDialogProps) {
+export function CreditNoteViewDialog({ open, onOpenChange, creditNote }: CreditNoteViewDialogProps) {
   const [settings, setSettings] = useState<BusinessSettings | null>(null);
 
   useEffect(() => {
@@ -25,12 +24,12 @@ export function ReceiptViewDialog({ open, onOpenChange, receipt }: ReceiptViewDi
     loadSettings();
   }, []);
 
-  if (!receipt) return null;
+  if (!creditNote) return null;
 
   const generateIRN = () => {
     const timestamp = Date.now().toString();
     const hash = Math.random().toString(36).substring(2, 10).toUpperCase();
-    return `${receipt.receiptNumber.replace(/[^A-Z0-9]/g, '')}-${hash}-${new Date().toISOString().split('T')[0].replace(/-/g, '')}`;
+    return `${creditNote.creditNoteNumber.replace(/[^A-Z0-9]/g, '')}-${hash}-${new Date().toISOString().split('T')[0].replace(/-/g, '')}`;
   };
 
   const irn = generateIRN();
@@ -39,7 +38,7 @@ export function ReceiptViewDialog({ open, onOpenChange, receipt }: ReceiptViewDi
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Receipt #{receipt.receiptNumber}</DialogTitle>
+          <DialogTitle>Credit Note #{creditNote.creditNoteNumber}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6 p-6 bg-card">
@@ -58,58 +57,48 @@ export function ReceiptViewDialog({ open, onOpenChange, receipt }: ReceiptViewDi
               <div className="bg-white p-2 rounded border inline-block">
                 <img 
                   src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(irn)}`}
-                  alt="Receipt QR Code"
+                  alt="Credit Note QR Code"
                   className="h-24 w-24"
                 />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-primary">RECEIPT</h3>
-                <p className="text-sm">#{receipt.receiptNumber}</p>
+                <h3 className="text-xl font-bold text-primary">CREDIT NOTE</h3>
+                <p className="text-sm">#{creditNote.creditNoteNumber}</p>
                 <p className="text-xs font-mono text-muted-foreground break-all">IRN: {irn}</p>
-                <p className="text-xs text-muted-foreground mt-2">Date: {receipt.paymentDate}</p>
+                <p className="text-xs text-muted-foreground mt-2">Date: {creditNote.date}</p>
               </div>
             </div>
           </div>
 
           <Separator />
 
-          {/* Receipt Details */}
+          {/* Credit Note Details */}
           <div className="space-y-4">
             <div className="flex justify-between">
               <span className="font-semibold">Customer:</span>
-              <span>{receipt.customerName}</span>
+              <span>{creditNote.customerName}</span>
             </div>
             <div className="flex justify-between">
               <span className="font-semibold">Invoice:</span>
-              <span>#{receipt.invoiceNumber}</span>
+              <span>#{creditNote.invoiceNumber}</span>
             </div>
             <div className="flex justify-between">
-              <span className="font-semibold">Payment Method:</span>
-              <span className="capitalize">{receipt.paymentMethod}</span>
+              <span className="font-semibold">Status:</span>
+              <span className="capitalize">{creditNote.status}</span>
             </div>
-            {receipt.notes && (
-              <div className="flex justify-between">
-                <span className="font-semibold">Notes:</span>
-                <span>{receipt.notes}</span>
-              </div>
-            )}
+            <div className="flex justify-between">
+              <span className="font-semibold">Reason:</span>
+              <span>{creditNote.reason}</span>
+            </div>
           </div>
 
           <Separator />
 
           {/* Amount */}
           <div className="bg-accent p-6 rounded-lg text-center">
-            <p className="text-sm text-muted-foreground mb-2">Amount Paid</p>
-            <p className="text-3xl font-bold text-primary">{formatCurrency(receipt.amount)}</p>
+            <p className="text-sm text-muted-foreground mb-2">Credit Amount</p>
+            <p className="text-3xl font-bold text-primary">{formatCurrency(creditNote.amount)}</p>
           </div>
-
-          {/* Notes */}
-          {receipt.notes && (
-            <div>
-              <h4 className="font-semibold mb-2">Notes:</h4>
-              <p className="text-sm text-muted-foreground">{receipt.notes}</p>
-            </div>
-          )}
 
           {/* FIRS Footer */}
           <div className="flex items-center justify-center gap-2 p-4 bg-accent rounded-lg">
@@ -119,10 +108,6 @@ export function ReceiptViewDialog({ open, onOpenChange, receipt }: ReceiptViewDi
 
           {/* Action Buttons */}
           <div className="flex gap-2 justify-center mt-4">
-            <Button variant="outline" onClick={() => generateReceiptPDF(receipt)}>
-              <Download className="h-4 w-4 mr-2" />
-              Download PDF
-            </Button>
             <Button variant="outline" onClick={() => window.print()}>
               <Printer className="h-4 w-4 mr-2" />
               Print
