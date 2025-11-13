@@ -1,11 +1,36 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { createInvoice, updateInvoice, type Invoice, type InvoiceItem } from "@/services/invoicesService";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  createInvoice,
+  updateInvoice,
+  type Invoice,
+  type InvoiceItem,
+} from "@/services/invoicesService";
 import { getCustomers, type Customer } from "@/services/customersService";
 import { getProducts, type Product } from "@/services/productsService";
 import { Plus, Trash2 } from "lucide-react";
@@ -18,16 +43,22 @@ interface InvoiceDialogProps {
   onSuccess: () => void;
 }
 
-export function InvoiceDialog({ open, onOpenChange, invoice, onSuccess }: InvoiceDialogProps) {
+export function InvoiceDialog({
+  open,
+  onOpenChange,
+  invoice,
+  onSuccess,
+}: InvoiceDialogProps) {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     customerId: "",
     date: new Date().toISOString().split("T")[0],
     dueDate: "",
-    status: "draft" as "draft" | "sent" | "paid" | "overdue" | "cancelled",
+    status: "sent" as "sent" | "paid",
+    // status: "draft" as "draft" | "sent" | "paid" | "overdue" | "cancelled",
     discount: "0",
     deliveryFee: "0",
     notes: "",
@@ -56,7 +87,8 @@ export function InvoiceDialog({ open, onOpenChange, invoice, onSuccess }: Invoic
         customerId: "",
         date: new Date().toISOString().split("T")[0],
         dueDate: "",
-        status: "draft",
+        status: "sent",
+        // status: "draft",
         discount: "0",
         deliveryFee: "0",
         notes: "",
@@ -98,10 +130,14 @@ export function InvoiceDialog({ open, onOpenChange, invoice, onSuccess }: Invoic
     setLineItems(lineItems.filter((_, i) => i !== index));
   };
 
-  const updateLineItem = (index: number, field: keyof InvoiceItem, value: any) => {
+  const updateLineItem = (
+    index: number,
+    field: keyof InvoiceItem,
+    value: any
+  ) => {
     const updated = [...lineItems];
     updated[index] = { ...updated[index], [field]: value };
-    
+
     if (field === "productId") {
       const product = products.find((p) => p.id === value);
       if (product) {
@@ -111,32 +147,35 @@ export function InvoiceDialog({ open, onOpenChange, invoice, onSuccess }: Invoic
         updated[index].quantity = updated[index].quantity || 1;
       }
     }
-    
+
     // Always recalculate total with proper NaN handling
     const quantity = Number(updated[index].quantity) || 0;
     const unitPrice = Number(updated[index].unitPrice) || 0;
     updated[index].total = quantity * unitPrice;
-    
+
     setLineItems(updated);
   };
 
   const calculateTotals = () => {
-    const subtotal = lineItems.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
+    const subtotal = lineItems.reduce(
+      (sum, item) => sum + (Number(item.total) || 0),
+      0
+    );
     const tax = lineItems.reduce((sum, item) => {
       const itemTotal = Number(item.total) || 0;
       const taxRate = Number(item.taxRate) || 0;
-      return sum + (itemTotal * taxRate / 100);
+      return sum + (itemTotal * taxRate) / 100;
     }, 0);
     const discount = Number(formData.discount) || 0;
     const deliveryFee = Number(formData.deliveryFee) || 0;
     const total = subtotal + tax - discount + deliveryFee;
-    
+
     return { subtotal, tax, discount, deliveryFee, total };
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (lineItems.length === 0) {
       toast.error("Please add at least one line item");
       return;
@@ -161,7 +200,9 @@ export function InvoiceDialog({ open, onOpenChange, invoice, onSuccess }: Invoic
         customerAddress: customer.address,
         date: formData.date,
         dueDate: formData.dueDate,
-        status: formData.status as "draft" | "sent" | "paid" | "overdue" | "cancelled",
+        status: formData.status as "sent" | "paid", // | "draft"
+        // | "overdue"
+        // | "cancelled",
         items: lineItems,
         subtotal: totals.subtotal,
         taxAmount: totals.tax,
@@ -193,9 +234,13 @@ export function InvoiceDialog({ open, onOpenChange, invoice, onSuccess }: Invoic
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{invoice ? "Edit Invoice" : "Create New Invoice"}</DialogTitle>
+          <DialogTitle>
+            {invoice ? "Edit Invoice" : "Create New Invoice"}
+          </DialogTitle>
           <DialogDescription>
-            {invoice ? "Update invoice details" : "Create a new invoice for your customer"}
+            {invoice
+              ? "Update invoice details"
+              : "Create a new invoice for your customer"}
           </DialogDescription>
         </DialogHeader>
 
@@ -203,7 +248,12 @@ export function InvoiceDialog({ open, onOpenChange, invoice, onSuccess }: Invoic
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="customer">Customer *</Label>
-              <Select value={formData.customerId} onValueChange={(value) => setFormData({ ...formData, customerId: value })}>
+              <Select
+                value={formData.customerId}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, customerId: value })
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select customer" />
                 </SelectTrigger>
@@ -217,9 +267,15 @@ export function InvoiceDialog({ open, onOpenChange, invoice, onSuccess }: Invoic
               </Select>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2" style={{ display: "none" }}>
               <Label htmlFor="status">Status *</Label>
-              <Select value={formData.status} onValueChange={(value: "draft" | "sent" | "paid" | "overdue" | "cancelled") => setFormData({ ...formData, status: value })}>
+              <Select
+                value={formData.status}
+                onValueChange={(
+                  value: "sent" | "paid"
+                  // value: "draft" | "sent" | "paid" | "overdue" | "cancelled"
+                ) => setFormData({ ...formData, status: value })}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -240,7 +296,9 @@ export function InvoiceDialog({ open, onOpenChange, invoice, onSuccess }: Invoic
                 type="date"
                 required
                 value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, date: e.target.value })
+                }
               />
             </div>
 
@@ -251,7 +309,9 @@ export function InvoiceDialog({ open, onOpenChange, invoice, onSuccess }: Invoic
                 type="date"
                 required
                 value={formData.dueDate}
-                onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, dueDate: e.target.value })
+                }
               />
             </div>
           </div>
@@ -283,7 +343,9 @@ export function InvoiceDialog({ open, onOpenChange, invoice, onSuccess }: Invoic
                       <TableCell>
                         <Select
                           value={item.productId}
-                          onValueChange={(value) => updateLineItem(index, "productId", value)}
+                          onValueChange={(value) =>
+                            updateLineItem(index, "productId", value)
+                          }
                         >
                           <SelectTrigger className="h-8">
                             <SelectValue />
@@ -303,7 +365,15 @@ export function InvoiceDialog({ open, onOpenChange, invoice, onSuccess }: Invoic
                           min="0"
                           className="h-8"
                           value={item.quantity || ""}
-                          onChange={(e) => updateLineItem(index, "quantity", e.target.value === "" ? 0 : parseInt(e.target.value))}
+                          onChange={(e) =>
+                            updateLineItem(
+                              index,
+                              "quantity",
+                              e.target.value === ""
+                                ? 0
+                                : parseInt(e.target.value)
+                            )
+                          }
                         />
                       </TableCell>
                       <TableCell>
@@ -313,7 +383,15 @@ export function InvoiceDialog({ open, onOpenChange, invoice, onSuccess }: Invoic
                           min="0"
                           className="h-8"
                           value={item.unitPrice || ""}
-                          onChange={(e) => updateLineItem(index, "unitPrice", e.target.value === "" ? 0 : parseFloat(e.target.value))}
+                          onChange={(e) =>
+                            updateLineItem(
+                              index,
+                              "unitPrice",
+                              e.target.value === ""
+                                ? 0
+                                : parseFloat(e.target.value)
+                            )
+                          }
                         />
                       </TableCell>
                       <TableCell>
@@ -323,10 +401,20 @@ export function InvoiceDialog({ open, onOpenChange, invoice, onSuccess }: Invoic
                           min="0"
                           className="h-8"
                           value={item.taxRate || ""}
-                          onChange={(e) => updateLineItem(index, "taxRate", e.target.value === "" ? 0 : parseFloat(e.target.value))}
+                          onChange={(e) =>
+                            updateLineItem(
+                              index,
+                              "taxRate",
+                              e.target.value === ""
+                                ? 0
+                                : parseFloat(e.target.value)
+                            )
+                          }
                         />
                       </TableCell>
-                      <TableCell>₦{(item.total || 0).toLocaleString()}</TableCell>
+                      <TableCell>
+                        ₦{(item.total || 0).toLocaleString()}
+                      </TableCell>
                       <TableCell>
                         <Button
                           type="button"
@@ -352,7 +440,9 @@ export function InvoiceDialog({ open, onOpenChange, invoice, onSuccess }: Invoic
                 type="number"
                 step="0.01"
                 value={formData.discount}
-                onChange={(e) => setFormData({ ...formData, discount: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, discount: e.target.value })
+                }
               />
             </div>
 
@@ -363,7 +453,9 @@ export function InvoiceDialog({ open, onOpenChange, invoice, onSuccess }: Invoic
                 type="number"
                 step="0.01"
                 value={formData.deliveryFee}
-                onChange={(e) => setFormData({ ...formData, deliveryFee: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, deliveryFee: e.target.value })
+                }
               />
             </div>
           </div>
@@ -373,7 +465,9 @@ export function InvoiceDialog({ open, onOpenChange, invoice, onSuccess }: Invoic
             <Input
               id="notes"
               value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, notes: e.target.value })
+              }
             />
           </div>
 
@@ -381,19 +475,27 @@ export function InvoiceDialog({ open, onOpenChange, invoice, onSuccess }: Invoic
             <div className="space-y-2 text-right">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Subtotal:</span>
-                <span className="font-medium">₦{totals.subtotal.toLocaleString()}</span>
+                <span className="font-medium">
+                  ₦{totals.subtotal.toLocaleString()}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Tax:</span>
-                <span className="font-medium">₦{totals.tax.toLocaleString()}</span>
+                <span className="font-medium">
+                  ₦{totals.tax.toLocaleString()}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Discount:</span>
-                <span className="font-medium">-₦{totals.discount.toLocaleString()}</span>
+                <span className="font-medium">
+                  -₦{totals.discount.toLocaleString()}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Delivery Fee:</span>
-                <span className="font-medium">₦{totals.deliveryFee.toLocaleString()}</span>
+                <span className="font-medium">
+                  ₦{totals.deliveryFee.toLocaleString()}
+                </span>
               </div>
               <div className="flex justify-between text-lg font-bold border-t pt-2">
                 <span>Total:</span>
@@ -403,11 +505,19 @@ export function InvoiceDialog({ open, onOpenChange, invoice, onSuccess }: Invoic
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : invoice ? "Update Invoice" : "Create Invoice"}
+              {loading
+                ? "Saving..."
+                : invoice
+                ? "Update Invoice"
+                : "Create Invoice"}
             </Button>
           </DialogFooter>
         </form>

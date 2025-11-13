@@ -1,14 +1,27 @@
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { getReceipts } from "@/services/receiptsService";
+import { deleteReceipt, getReceipts } from "@/services/receiptsService";
 import type { Receipt } from "@/services/receiptsService";
 import { ReceiptViewDialog } from "@/components/ReceiptViewDialog";
 import { ReceiptDialog } from "@/components/ReceiptDialog";
-import { Plus, Search, Eye, Download } from "lucide-react";
+import { Plus, Search, Eye, Download, Trash, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/utils/currency";
 import { generateReceiptPDF } from "@/utils/pdfGenerator";
 import { toast } from "sonner";
@@ -20,6 +33,7 @@ export default function Receipts() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [viewingReceipt, setViewingReceipt] = useState<Receipt | undefined>();
+  const [_, setFilteredReceipts] = useState<Receipt[]>([]);
 
   useEffect(() => {
     loadReceipts();
@@ -46,21 +60,39 @@ export default function Receipts() {
     }
   };
 
-  const filteredReceipts = receipts.filter((receipt) =>
-    receipt.receiptNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    receipt.customerName.toLowerCase().includes(searchTerm.toLowerCase())
+  const handleDeleteReceipt = async (receiptId: string) => {
+    try {
+      await deleteReceipt(receiptId); // 🔹 mock service call
+      setFilteredReceipts((prev) => prev.filter((r) => r.id !== receiptId));
+      toast.success("Receipt deleted successfully");
+    } catch (error) {
+      console.error("Error deleting receipt:", error);
+      toast.error("Failed to delete receipt");
+    }
+  };
+
+  const filteredReceipts = receipts.filter(
+    (receipt) =>
+      receipt.receiptNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      receipt.customerName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
-    return <div className="flex items-center justify-center h-full">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-full">Loading...</div>
+    );
   }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Receipts</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Track payment receipts</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+            Receipts
+          </h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Track payment receipts
+          </p>
         </div>
         <Button onClick={() => setDialogOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
@@ -91,47 +123,112 @@ export default function Receipts() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Receipt #</TableHead>
-                  <TableHead className="hidden md:table-cell">Invoice #</TableHead>
-                  <TableHead className="hidden lg:table-cell">Customer</TableHead>
-                  <TableHead className="hidden sm:table-cell">Payment Date</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    Invoice #
+                  </TableHead>
+                  <TableHead className="hidden lg:table-cell">
+                    Customer
+                  </TableHead>
+                  <TableHead className="hidden sm:table-cell">
+                    Payment Date
+                  </TableHead>
                   <TableHead>Amount</TableHead>
-                  <TableHead className="hidden md:table-cell">Payment Method</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    Payment Method
+                  </TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredReceipts.map((receipt) => (
-                  <TableRow key={receipt.id}>
-                    <TableCell className="font-medium">{receipt.receiptNumber}</TableCell>
-                    <TableCell className="hidden md:table-cell">{receipt.invoiceNumber}</TableCell>
-                    <TableCell className="hidden lg:table-cell">{receipt.customerName}</TableCell>
-                    <TableCell className="hidden sm:table-cell">{receipt.paymentDate}</TableCell>
-                    <TableCell>{formatCurrency(receipt.amount)}</TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <Badge variant="secondary" className="capitalize">
-                        {receipt.paymentMethod.replace("_", " ")}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-8 w-8 p-0"
-                          onClick={() => {
-                            setViewingReceipt(receipt);
-                            setViewDialogOpen(true);
-                          }}
+                {filteredReceipts.length > 0 ? (
+                  filteredReceipts.map((receipt) => (
+                    <TableRow
+                      key={receipt.id}
+                      className="hover:bg-blue-50 transition-colors"
+                    >
+                      <TableCell className="font-medium">
+                        {receipt.receiptNumber}
+                      </TableCell>
+
+                      <TableCell className="hidden md:table-cell">
+                        {receipt.invoiceNumber}
+                      </TableCell>
+
+                      <TableCell className="hidden lg:table-cell truncate max-w-[180px]">
+                        {receipt.customerName}
+                      </TableCell>
+
+                      <TableCell className="hidden sm:table-cell">
+                        {receipt.paymentDate}
+                      </TableCell>
+
+                      <TableCell className="font-semibold">
+                        {formatCurrency(receipt.amount)}
+                      </TableCell>
+
+                      <TableCell className="hidden md:table-cell">
+                        <Badge
+                          variant={
+                            receipt.paymentMethod === "cash"
+                              ? "default"
+                              : receipt.paymentMethod === "bank_transfer"
+                              ? "outline"
+                              : "secondary"
+                          }
+                          className="capitalize"
                         >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hidden sm:flex" onClick={() => handleDownloadPDF(receipt)}>
-                          <Download className="h-4 w-4" />
-                        </Button>
-                      </div>
+                          {receipt.paymentMethod.replace("_", " ")}
+                        </Badge>
+                      </TableCell>
+
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1 sm:gap-2">
+                          {/* <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            title="View Receipt"
+                            onClick={() => {
+                              setViewingReceipt(receipt);
+                              setViewDialogOpen(true);
+                            }}
+                          >
+                            <Eye className="h-4 w-4 text-blue-600" />
+                          </Button> */}
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 hidden sm:flex"
+                            title="Download PDF"
+                            onClick={() => handleDownloadPDF(receipt)}
+                          >
+                            <Download className="h-4 w-4 text-green-600" />
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            title="Delete Receipt"
+                            onClick={() => handleDeleteReceipt(receipt.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={7}
+                      className="text-center py-6 text-gray-500"
+                    >
+                      No receipts found.
                     </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </div>

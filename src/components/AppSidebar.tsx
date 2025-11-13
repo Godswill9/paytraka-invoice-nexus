@@ -40,15 +40,19 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="z-50">
       <SidebarHeader className="border-b border-sidebar-border px-4 py-3">
         <div className="flex items-center gap-2">
-          <img 
-            src="https://e-invoicingplatform.com/assets/einvoicing_logo-Sbff_FEO.png" 
-            alt="Paytraka" 
-            className={`h-8 transition-all ${open ? 'w-auto' : 'w-8'}`}
+          <img
+            src="https://e-invoicingplatform.com/assets/einvoicing_logo-Sbff_FEO.png"
+            alt="Paytraka"
+            className={`h-8 transition-all ${open ? "w-auto" : "w-8"}`}
           />
-          {open && <span className="font-bold text-lg text-sidebar-foreground">Paytraka</span>}
+          {open && (
+            <span className="font-bold text-lg text-sidebar-foreground">
+              Paytraka
+            </span>
+          )}
         </div>
       </SidebarHeader>
-      
+
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Menu</SidebarGroupLabel>
@@ -57,8 +61,8 @@ export function AppSidebar() {
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <NavLink 
-                      to={item.url} 
+                    <NavLink
+                      to={item.url}
                       end={item.url === "/"}
                       className="flex items-center gap-3"
                       activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"

@@ -3,7 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { login } from "@/services/authService";
 import { useToast } from "@/hooks/use-toast";
 import { FileText } from "lucide-react";
@@ -79,9 +85,9 @@ export default function Login() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Logging in..." : "Login"}
             </Button>
-            <p className="text-xs text-center text-muted-foreground">
+            {/* <p className="text-xs text-center text-muted-foreground">
               Demo: Use any email and password (min 6 characters)
-            </p>
+            </p> */}
           </form>
         </CardContent>
       </Card>

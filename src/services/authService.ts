@@ -9,25 +9,47 @@ export interface User {
   businessName?: string;
 }
 
-const STORAGE_KEY = 'paytraka_user';
+const STORAGE_KEY = "paytraka_user";
 const MOCK_USER: User = {
-  id: '1',
-  email: 'demo@paytraka.com',
-  name: 'Demo User',
-  businessName: 'Demo Business'
+  id: "1",
+  email: "demo@paytraka.com",
+  name: "Demo User",
+  businessName: "Demo Business",
 };
 
 /**
  * Login user
  * TODO: Replace with real API call to authentication endpoint
  */
+// export const login = async (email: string, password: string): Promise<User> => {
+//   // Mock validation
+//   if (email && password.length >= 6) {
+//     localStorage.setItem(STORAGE_KEY, JSON.stringify(MOCK_USER));
+//     return MOCK_USER;
+//   }
+//   throw new Error('Invalid credentials');
+// };
+
 export const login = async (email: string, password: string): Promise<User> => {
-  // Mock validation
-  if (email && password.length >= 6) {
+  // ✅ Fixed credentials
+  const FIXED_EMAIL = "admin@paytraka.com";
+  const FIXED_PASSWORD = "123456";
+
+  // ✅ Mock user object
+  const MOCK_USER: User = {
+    id: "1",
+    name: "Paytraka Admin",
+    email: FIXED_EMAIL,
+  };
+
+  // ✅ Validate input
+  if (email === FIXED_EMAIL && password === FIXED_PASSWORD) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(MOCK_USER));
     return MOCK_USER;
   }
-  throw new Error('Invalid credentials');
+
+  // ❌ Invalid credentials
+  throw new Error("Invalid email or password");
 };
 
 /**
