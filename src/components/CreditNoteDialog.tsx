@@ -1,10 +1,24 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { createCreditNote, type CreditNote } from "@/services/adjustmentsService";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  createCreditNote,
+  type CreditNote,
+} from "@/services/adjustmentsService";
 import { getInvoices } from "@/services/invoicesService";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -16,7 +30,12 @@ interface CreditNoteDialogProps {
   onSuccess: () => void;
 }
 
-export function CreditNoteDialog({ open, onOpenChange, creditNote, onSuccess }: CreditNoteDialogProps) {
+export function CreditNoteDialog({
+  open,
+  onOpenChange,
+  creditNote,
+  onSuccess,
+}: CreditNoteDialogProps) {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     invoiceId: "",
@@ -26,7 +45,8 @@ export function CreditNoteDialog({ open, onOpenChange, creditNote, onSuccess }: 
     amount: "",
     reason: "",
     date: new Date().toISOString().split("T")[0],
-    status: "draft" as CreditNote["status"],
+    status: "Issued" as CreditNote["status"],
+    // status: "draft" as CreditNote["status"],
   });
 
   useEffect(() => {
@@ -52,7 +72,8 @@ export function CreditNoteDialog({ open, onOpenChange, creditNote, onSuccess }: 
           amount: "",
           reason: "",
           date: new Date().toISOString().split("T")[0],
-          status: "draft",
+          status: "issued",
+          // status: "draft",
         });
       }
     }
@@ -68,9 +89,9 @@ export function CreditNoteDialog({ open, onOpenChange, creditNote, onSuccess }: 
   };
 
   const handleInvoiceSelect = (invoiceId: string) => {
-    const selectedInvoice = invoices.find(inv => inv.id === invoiceId);
+    const selectedInvoice = invoices.find((inv) => inv.id === invoiceId);
     if (selectedInvoice) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         invoiceId: selectedInvoice.id,
         invoiceNumber: selectedInvoice.invoiceNumber,
@@ -82,7 +103,7 @@ export function CreditNoteDialog({ open, onOpenChange, creditNote, onSuccess }: 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       await createCreditNote({
         invoiceId: formData.invoiceId,
@@ -94,8 +115,12 @@ export function CreditNoteDialog({ open, onOpenChange, creditNote, onSuccess }: 
         date: formData.date,
         status: formData.status,
       });
-      
-      toast.success(creditNote ? "Credit note updated successfully" : "Credit note created successfully");
+
+      toast.success(
+        creditNote
+          ? "Credit note updated successfully"
+          : "Credit note created successfully",
+      );
       onSuccess();
       onOpenChange(false);
     } catch (error) {
@@ -108,12 +133,18 @@ export function CreditNoteDialog({ open, onOpenChange, creditNote, onSuccess }: 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{creditNote ? "Edit Credit Note" : "Create Credit Note"}</DialogTitle>
+          <DialogTitle>
+            {creditNote ? "Edit Credit Note" : "Create Credit Note"}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="invoice">Invoice *</Label>
-            <Select value={formData.invoiceId} onValueChange={handleInvoiceSelect} disabled={!!creditNote}>
+            <Select
+              value={formData.invoiceId}
+              onValueChange={handleInvoiceSelect}
+              disabled={!!creditNote}
+            >
               <SelectTrigger id="invoice">
                 <SelectValue placeholder="Select an invoice" />
               </SelectTrigger>
@@ -135,7 +166,9 @@ export function CreditNoteDialog({ open, onOpenChange, creditNote, onSuccess }: 
                 type="number"
                 step="0.01"
                 value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, amount: e.target.value })
+                }
                 required
               />
             </div>
@@ -146,7 +179,9 @@ export function CreditNoteDialog({ open, onOpenChange, creditNote, onSuccess }: 
                 id="date"
                 type="date"
                 value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, date: e.target.value })
+                }
                 required
               />
             </div>
@@ -157,13 +192,15 @@ export function CreditNoteDialog({ open, onOpenChange, creditNote, onSuccess }: 
             <Textarea
               id="reason"
               value={formData.reason}
-              onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, reason: e.target.value })
+              }
               rows={3}
               required
             />
           </div>
 
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="status">Status *</Label>
             <Select value={formData.status} onValueChange={(value: CreditNote["status"]) => setFormData({ ...formData, status: value })}>
               <SelectTrigger id="status">
@@ -175,10 +212,14 @@ export function CreditNoteDialog({ open, onOpenChange, creditNote, onSuccess }: 
                 <SelectItem value="applied">Applied</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </div> */}
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
             <Button type="submit">

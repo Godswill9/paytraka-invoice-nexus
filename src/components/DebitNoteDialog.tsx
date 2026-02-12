@@ -1,9 +1,20 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { createDebitNote, type DebitNote } from "@/services/adjustmentsService";
 import { getInvoices } from "@/services/invoicesService";
 import { useState, useEffect } from "react";
@@ -16,7 +27,12 @@ interface DebitNoteDialogProps {
   onSuccess: () => void;
 }
 
-export function DebitNoteDialog({ open, onOpenChange, debitNote, onSuccess }: DebitNoteDialogProps) {
+export function DebitNoteDialog({
+  open,
+  onOpenChange,
+  debitNote,
+  onSuccess,
+}: DebitNoteDialogProps) {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     invoiceId: "",
@@ -26,7 +42,8 @@ export function DebitNoteDialog({ open, onOpenChange, debitNote, onSuccess }: De
     amount: "",
     reason: "",
     date: new Date().toISOString().split("T")[0],
-    status: "draft" as DebitNote["status"],
+    status: "Issued" as DebitNote["status"],
+    // status: "draft" as DebitNote["status"],
   });
 
   useEffect(() => {
@@ -52,7 +69,8 @@ export function DebitNoteDialog({ open, onOpenChange, debitNote, onSuccess }: De
           amount: "",
           reason: "",
           date: new Date().toISOString().split("T")[0],
-          status: "draft",
+          status: "issued",
+          // status: "draft",
         });
       }
     }
@@ -68,9 +86,9 @@ export function DebitNoteDialog({ open, onOpenChange, debitNote, onSuccess }: De
   };
 
   const handleInvoiceSelect = (invoiceId: string) => {
-    const selectedInvoice = invoices.find(inv => inv.id === invoiceId);
+    const selectedInvoice = invoices.find((inv) => inv.id === invoiceId);
     if (selectedInvoice) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         invoiceId: selectedInvoice.id,
         invoiceNumber: selectedInvoice.invoiceNumber,
@@ -82,7 +100,7 @@ export function DebitNoteDialog({ open, onOpenChange, debitNote, onSuccess }: De
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       await createDebitNote({
         invoiceId: formData.invoiceId,
@@ -94,8 +112,12 @@ export function DebitNoteDialog({ open, onOpenChange, debitNote, onSuccess }: De
         date: formData.date,
         status: formData.status,
       });
-      
-      toast.success(debitNote ? "Debit note updated successfully" : "Debit note created successfully");
+
+      toast.success(
+        debitNote
+          ? "Debit note updated successfully"
+          : "Debit note created successfully",
+      );
       onSuccess();
       onOpenChange(false);
     } catch (error) {
@@ -108,12 +130,18 @@ export function DebitNoteDialog({ open, onOpenChange, debitNote, onSuccess }: De
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{debitNote ? "Edit Debit Note" : "Create Debit Note"}</DialogTitle>
+          <DialogTitle>
+            {debitNote ? "Edit Debit Note" : "Create Debit Note"}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="invoice">Invoice *</Label>
-            <Select value={formData.invoiceId} onValueChange={handleInvoiceSelect} disabled={!!debitNote}>
+            <Select
+              value={formData.invoiceId}
+              onValueChange={handleInvoiceSelect}
+              disabled={!!debitNote}
+            >
               <SelectTrigger id="invoice">
                 <SelectValue placeholder="Select an invoice" />
               </SelectTrigger>
@@ -135,7 +163,9 @@ export function DebitNoteDialog({ open, onOpenChange, debitNote, onSuccess }: De
                 type="number"
                 step="0.01"
                 value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, amount: e.target.value })
+                }
                 required
               />
             </div>
@@ -146,7 +176,9 @@ export function DebitNoteDialog({ open, onOpenChange, debitNote, onSuccess }: De
                 id="date"
                 type="date"
                 value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, date: e.target.value })
+                }
                 required
               />
             </div>
@@ -157,15 +189,22 @@ export function DebitNoteDialog({ open, onOpenChange, debitNote, onSuccess }: De
             <Textarea
               id="reason"
               value={formData.reason}
-              onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, reason: e.target.value })
+              }
               rows={3}
               required
             />
           </div>
 
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="status">Status *</Label>
-            <Select value={formData.status} onValueChange={(value: DebitNote["status"]) => setFormData({ ...formData, status: value })}>
+            <Select
+              value={formData.status}
+              onValueChange={(value: DebitNote["status"]) =>
+                setFormData({ ...formData, status: value })
+              }
+            >
               <SelectTrigger id="status">
                 <SelectValue />
               </SelectTrigger>
@@ -175,10 +214,14 @@ export function DebitNoteDialog({ open, onOpenChange, debitNote, onSuccess }: De
                 <SelectItem value="applied">Applied</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </div> */}
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
             <Button type="submit">

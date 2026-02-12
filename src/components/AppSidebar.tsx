@@ -40,11 +40,14 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="z-50">
       <SidebarHeader className="border-b border-sidebar-border px-4 py-3">
         <div className="flex items-center gap-2">
-          <img
+          {/* <img
             src="https://e-invoicingplatform.com/assets/einvoicing_logo-Sbff_FEO.png"
             alt="Paytraka"
             className={`h-8 transition-all ${open ? "w-auto" : "w-8"}`}
-          />
+          /> */}{" "}
+          <div className="h-12 w-12 rounded-full bg-primary flex items-center justify-center">
+            <FileText className="h-6 w-6 text-primary-foreground" />
+          </div>
           {open && (
             <span className="font-bold text-lg text-sidebar-foreground">
               Paytraka

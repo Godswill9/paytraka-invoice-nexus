@@ -1,7 +1,3 @@
-// Mock Authentication Service
-// This uses localStorage to simulate user sessions
-// TODO: Replace with real authentication (e.g., JWT, OAuth, Supabase Auth)
-
 export interface User {
   id: string;
   email: string;
@@ -16,19 +12,6 @@ const MOCK_USER: User = {
   name: "Demo User",
   businessName: "Demo Business",
 };
-
-/**
- * Login user
- * TODO: Replace with real API call to authentication endpoint
- */
-// export const login = async (email: string, password: string): Promise<User> => {
-//   // Mock validation
-//   if (email && password.length >= 6) {
-//     localStorage.setItem(STORAGE_KEY, JSON.stringify(MOCK_USER));
-//     return MOCK_USER;
-//   }
-//   throw new Error('Invalid credentials');
-// };
 
 export const login = async (email: string, password: string): Promise<User> => {
   // ✅ Fixed credentials

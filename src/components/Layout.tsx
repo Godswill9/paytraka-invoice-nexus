@@ -13,8 +13,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!isAuthenticated() && location.pathname !== '/login') {
-      navigate('/login');
+    if (!isAuthenticated() && location.pathname !== "/login") {
+      navigate("/login");
     }
   }, [navigate, location]);
 
@@ -24,7 +24,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       title: "Logged out",
       description: "You have been logged out successfully",
     });
-    navigate('/login');
+    navigate("/login");
   };
 
   if (!isAuthenticated()) {
@@ -40,12 +40,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <SidebarTrigger />
             <div className="flex items-center gap-2 ml-auto">
               <div className="flex items-center gap-2">
-                <img 
-                  src="https://einvoice.firs.gov.ng/favicon.png" 
-                  alt="FIRS" 
+                <img
+                  src="https://einvoice.firs.gov.ng/assets/logo-oZgquXvw.svg"
+                  alt="FIRS"
                   className="h-6 w-6"
                 />
-                <span className="text-sm text-muted-foreground hidden sm:inline">FIRS Compliant</span>
+                <span className="text-sm text-muted-foreground hidden sm:inline">
+                  FIRS Compliant
+                </span>
               </div>
               <Button variant="ghost" size="sm" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
@@ -53,9 +55,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </Button>
             </div>
           </header>
-          <div className="flex-1 p-4 md:p-6 overflow-auto">
-            {children}
-          </div>
+          <div className="flex-1 p-4 md:p-6 overflow-auto">{children}</div>
         </main>
       </div>
     </SidebarProvider>

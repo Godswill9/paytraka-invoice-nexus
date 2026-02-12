@@ -166,9 +166,9 @@ export default function Invoices() {
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hidden sm:flex" onClick={() => handleDownloadPDF(invoice)}>
                           <Download className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => handleEdit(invoice)}>
+                        {/* <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => handleEdit(invoice)}>
                           <Edit className="h-4 w-4" />
-                        </Button>
+                        </Button> */}
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hidden sm:flex" onClick={() => handleDelete(invoice.id)}>
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
