@@ -46,3 +46,13 @@ body {
   background: #dadefd;
   color: #0001b1;
 }
+
+@keyframes floatCard {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}

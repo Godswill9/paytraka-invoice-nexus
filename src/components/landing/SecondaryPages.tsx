@@ -20,6 +20,7 @@ import {
   ShieldCheck,
   UsersRound,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 
@@ -42,9 +43,8 @@ export function SiteNavbar({ active }: { active: PageKey }) {
   return (
     <header className="sticky top-0 z-50 border-b border-[#C5C4DA]/50 bg-white/95 backdrop-blur-xl">
       <nav className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-5 md:px-8" aria-label="Main navigation">
-        <Link href="/" className="flex items-center gap-2 text-2xl font-extrabold text-[#0001B1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1117E8]">
-          <Landmark className="hidden h-5 w-5 sm:block" aria-hidden="true" />
-          PayTraka
+        <Link href="/" className="flex items-center gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1117E8]">
+          <Image src="/paytraka_logo/paytraka-logo-navbar.png" alt="PayTraka" width={145} height={40} className="h-9 w-auto" priority />
         </Link>
         <div className="hidden items-center gap-7 lg:flex">
           {navLinks.map((link) => (
@@ -91,9 +91,8 @@ export function SimpleFooter() {
     <footer className="border-t border-[#C5C4DA]/60 bg-[#EEF2F6]">
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 md:grid-cols-4 md:px-8">
         <div>
-          <Link href="/" className="flex items-center gap-2 text-2xl font-extrabold text-[#0001B1]">
-            <Landmark className="h-5 w-5" aria-hidden="true" />
-            PayTraka
+          <Link href="/" className="flex items-center gap-2">
+            <Image src="/paytraka_logo/paytraka-logo-navbar.png" alt="PayTraka" width={145} height={40} className="h-9 w-auto" />
           </Link>
           <p className="mt-6 text-sm leading-6 text-[#66728A]">
             © 2026 PayTraka. Professional Tax Compliance Disclaimer: PayTraka is an e-invoicing readiness platform aligned with FIRS/NRS workflows.
