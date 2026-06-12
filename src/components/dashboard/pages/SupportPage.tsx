@@ -15,7 +15,7 @@ export function SupportPage() {
         <MetricCard label="Compliance Expert" value="Book" icon={Phone} />
         <MetricCard label="API Support" value="24/7" icon={Code2} />
       </div>
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+      <div className="grid min-w-0 gap-6 2xl:grid-cols-[minmax(0,1fr)_320px]">
         <FormShell title="Add Support Ticket" sideTitle="Account Status" sections={sections} buttons={["Discard", "Submit Ticket"]} />
         <aside className="space-y-6">
           <Card className="p-6"><h2 className="text-lg font-bold">Common Help Topics</h2><div className="mt-4 space-y-4 text-sm font-semibold text-[#454557]">{["Exporting tax reports", "Linking to ERP software", "Updating payment method", "Compliance regulation FAQ"].map((item) => <p key={item}>{item}</p>)}</div></Card>

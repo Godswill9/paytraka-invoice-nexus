@@ -39,9 +39,9 @@ function useDashboardGuard() {
 
 function EnvironmentToggle({ mode, setMode }: { mode: "test" | "live"; setMode: (mode: "test" | "live") => void }) {
   return (
-    <div className="inline-grid grid-cols-2 rounded-full border border-[#C5C4DA] bg-[#E8ECF3] p-1 text-sm font-bold">
+    <div className="inline-grid grid-cols-2 rounded-full border border-[#C5C4DA] bg-[#E8ECF3] p-1 text-xs font-bold sm:text-sm">
       {(["test", "live"] as const).map((item) => (
-        <button key={item} type="button" onClick={() => setMode(item)} className={`rounded-full px-5 py-2 transition ${mode === item ? "bg-white text-[#1117E8] shadow-sm" : "text-[#454557]"}`}>
+        <button key={item} type="button" onClick={() => setMode(item)} className={`rounded-full px-3 py-2 transition sm:px-5 ${mode === item ? "bg-white text-[#1117E8] shadow-sm" : "text-[#454557]"}`}>
           {item === "test" ? "Test Mode" : "Live Mode"}
         </button>
       ))}
@@ -52,7 +52,7 @@ function EnvironmentToggle({ mode, setMode }: { mode: "test" | "live"; setMode: 
 function Topbar({ mode, setMode, setSidebarOpen }: { mode: "test" | "live"; setMode: (mode: "test" | "live") => void; setSidebarOpen: (open: boolean) => void }) {
   return (
     <header className="sticky top-0 z-30 border-b border-[#C5C4DA] bg-white/95 backdrop-blur">
-      <div className="flex min-h-[72px] items-center gap-4 px-4 sm:px-6 lg:px-8">
+      <div className="flex min-h-[64px] min-w-0 items-center gap-2 px-3 sm:min-h-[72px] sm:gap-4 sm:px-6 lg:px-8">
         <button type="button" className="lg:hidden" onClick={() => setSidebarOpen(true)} aria-label="Open navigation"><Menu className="h-6 w-6" /></button>
         <div className="relative hidden max-w-md flex-1 md:block">
           <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#757588]" />
@@ -60,7 +60,7 @@ function Topbar({ mode, setMode, setSidebarOpen }: { mode: "test" | "live"; setM
         </div>
         <div className="ml-auto hidden sm:block"><EnvironmentToggle mode={mode} setMode={setMode} /></div>
         <StatusBadge tone={mode === "live" ? "success" : "primary"}>{mode === "live" ? "Live Mode" : "Sandbox"}</StatusBadge>
-        {[Bell, HelpCircle, Settings].map((Icon, index) => <button key={index} aria-label={["Notifications", "Help", "Settings"][index]} className="rounded-lg p-2 text-[#454557] hover:bg-[#F1F4F8]"><Icon className="h-5 w-5" /></button>)}
+        {[Bell, HelpCircle, Settings].map((Icon, index) => <button key={index} aria-label={["Notifications", "Help", "Settings"][index]} className="rounded-lg p-1.5 text-[#454557] hover:bg-[#F1F4F8] sm:p-2"><Icon className="h-5 w-5" /></button>)}
         <div className="hidden items-center gap-3 border-l border-[#C5C4DA] pl-4 sm:flex">
           <div className="text-right"><p className="text-sm font-bold">Admin User</p><p className="text-xs text-[#757588]">Manage Profile</p></div>
           <div className="grid h-10 w-10 place-items-center rounded-full bg-[#DADEFD] font-bold text-[#0001B1]">AU</div>
@@ -77,11 +77,11 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   if (!ready) return null;
 
   return (
-    <div className="min-h-screen bg-[#F7F9FB] text-[#191C1E]" style={{ backgroundColor: PAYTRAKA_COLORS.background, color: PAYTRAKA_COLORS.text }}>
+    <div className="min-h-screen overflow-x-hidden bg-[#F7F9FB] text-[#191C1E]" style={{ backgroundColor: PAYTRAKA_COLORS.background, color: PAYTRAKA_COLORS.text }}>
       <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
-      <div className="lg:pl-[272px]">
+      <div className="min-w-0 lg:pl-[272px]">
         <Topbar mode={mode} setMode={setMode} setSidebarOpen={setSidebarOpen} />
-        <main className="px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+        <main className="min-w-0 px-3 py-5 sm:px-6 sm:py-6 lg:px-8">{children}</main>
       </div>
     </div>
   );

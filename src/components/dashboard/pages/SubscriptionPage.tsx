@@ -13,7 +13,7 @@ export function SubscriptionPage() {
       <PageHeader title="Manage Subscription" subtitle="Control your billing, change plans, and view history." />
       <Card className="mb-6 flex flex-col gap-4 p-6 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-4"><span className="rounded-2xl bg-[#DADEFD] p-4 text-[#0001B1]"><CreditCard className="h-6 w-6" /></span><div><p className="text-lg font-bold">Current Plan: Compliance Pro <StatusBadge tone="success">Active</StatusBadge></p><p className="text-sm text-[#454557]">Your plan renews on January 12, 2027.</p></div></div>
-        <div className="flex gap-3"><Button variant="secondary">Cancel Subscription</Button><Button>Upgrade Now</Button></div>
+        <div className="flex flex-col gap-3 sm:flex-row"><Button variant="secondary">Cancel Subscription</Button><Button>Upgrade Now</Button></div>
       </Card>
       <div className="mb-8 grid gap-6 lg:grid-cols-3">
         {plans.map(([name, description, price, features], index) => (

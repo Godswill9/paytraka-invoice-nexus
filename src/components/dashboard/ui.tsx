@@ -42,11 +42,11 @@ function statusTone(value: React.ReactNode): StatusTone {
 }
 
 export function StatusBadge({ children, tone }: { children: React.ReactNode; tone?: StatusTone }) {
-  return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${toneClasses(tone ?? statusTone(children))}`}>{children}</span>;
+  return <span className={`inline-flex max-w-full rounded-full px-2.5 py-1 text-xs font-bold ${toneClasses(tone ?? statusTone(children))}`}>{children}</span>;
 }
 
 export function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <section className={`rounded-2xl border border-[#C5C4DA] bg-white ${className}`}>{children}</section>;
+  return <section className={`min-w-0 rounded-2xl border border-[#C5C4DA] bg-white ${className}`}>{children}</section>;
 }
 
 export function Button({ children, variant = "primary", className = "", href, type = "button", onClick }: { children: React.ReactNode; variant?: "primary" | "secondary" | "ghost" | "danger"; className?: string; href?: string; type?: "button" | "submit"; onClick?: () => void }) {
@@ -56,19 +56,19 @@ export function Button({ children, variant = "primary", className = "", href, ty
     ghost: "bg-[#F1F4F8] text-[#191C1E] hover:bg-[#DADEFD]",
     danger: "bg-red-600 text-white hover:bg-red-700",
   }[variant];
-  const content = `inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1117E8] ${classes} ${className}`;
+  const content = `inline-flex min-h-11 max-w-full items-center justify-center gap-2 rounded-xl px-4 text-center text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1117E8] ${classes} ${className}`;
   return href ? <Link href={href} className={content}>{children}</Link> : <button type={type} onClick={onClick} className={content}>{children}</button>;
 }
 
 export function PageHeader({ title, subtitle, action, breadcrumb }: { title: string; subtitle: string; action?: React.ReactNode; breadcrumb?: string }) {
   return (
-    <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-      <div>
+    <div className="mb-6 flex min-w-0 flex-col gap-4 md:flex-row md:items-start md:justify-between">
+      <div className="min-w-0">
         {breadcrumb ? <p className="mb-3 text-sm font-semibold text-[#757588]">{breadcrumb}</p> : null}
         <h1 className="text-3xl font-extrabold tracking-normal text-[#191C1E]">{title}</h1>
         <p className="mt-1 max-w-2xl text-sm text-[#454557]">{subtitle}</p>
       </div>
-      {action ? <div className="flex flex-wrap gap-3">{action}</div> : null}
+      {action ? <div className="flex w-full min-w-0 flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-end">{action}</div> : null}
     </div>
   );
 }
@@ -112,7 +112,7 @@ export function DataTable({ title, columns, rows, footer = "Showing 1 to 4 recor
         <div className="flex gap-2">{actions ?? <><button aria-label="Download" className="rounded-lg p-2 hover:bg-[#F1F4F8]"><Download className="h-4 w-4" /></button><button aria-label="Print" className="rounded-lg p-2 hover:bg-[#F1F4F8]"><Printer className="h-4 w-4" /></button></>}</div>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[760px] border-collapse text-left">
+        <table className="w-full min-w-[680px] border-collapse text-left sm:min-w-[760px]">
           <thead className="bg-[#F1F4F8] text-xs uppercase text-[#454557]">
             <tr>{columns.map((column) => <th key={column} scope="col" className="px-5 py-4 font-bold">{column}</th>)}</tr>
           </thead>
@@ -121,7 +121,7 @@ export function DataTable({ title, columns, rows, footer = "Showing 1 to 4 recor
           </tbody>
         </table>
       </div>
-      <div className="flex items-center justify-between gap-4 bg-[#F7F9FB] px-5 py-4 text-sm text-[#454557]">
+      <div className="flex flex-col gap-3 bg-[#F7F9FB] px-5 py-4 text-sm text-[#454557] sm:flex-row sm:items-center sm:justify-between">
         <span>{footer}</span><div className="flex gap-2"><StatusBadge tone="primary">1</StatusBadge><span className="rounded-lg border border-[#C5C4DA] bg-white px-3 py-1">2</span><span className="rounded-lg border border-[#C5C4DA] bg-white px-3 py-1">3</span></div>
       </div>
     </Card>
@@ -133,12 +133,12 @@ export function rowActions(extra?: React.ReactNode) {
 }
 
 export function FilterBar({ labels = ["Date range", "Payment status", "FIRS status", "More filters"] }: { labels?: string[] }) {
-  return <Card className="mb-6 flex flex-wrap items-center gap-3 p-4"><Filter className="h-5 w-5" /><span className="font-bold">Filters:</span>{labels.map((label) => <button key={label} className="rounded-lg border border-[#C5C4DA] bg-white px-4 py-2 text-sm font-semibold text-[#454557]">{label}</button>)}<button className="ml-auto font-bold text-[#0001B1]">Clear all</button></Card>;
+  return <Card className="mb-6 flex min-w-0 flex-wrap items-center gap-3 p-4"><Filter className="h-5 w-5 shrink-0" /><span className="font-bold">Filters:</span>{labels.map((label) => <button key={label} className="min-w-0 rounded-lg border border-[#C5C4DA] bg-white px-4 py-2 text-sm font-semibold text-[#454557]">{label}</button>)}<button className="w-full text-left font-bold text-[#0001B1] sm:ml-auto sm:w-auto">Clear all</button></Card>;
 }
 
 export function BottomInsight({ title, asideTitle }: { title: string; asideTitle: string }) {
   return (
-    <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
+    <div className="mt-6 grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
       <Card className="p-6"><h2 className="text-lg font-bold">{title}</h2><div className="mt-5 grid min-h-40 place-items-center rounded-xl bg-[#EEF1F5] p-8 text-center text-[#454557]">Detailed visualization and category breakdown is being computed from verified records.</div></Card>
       <Card className="bg-[#1117E8] p-6 text-white"><h2 className="text-2xl font-bold">{asideTitle}</h2><p className="mt-4 leading-7 text-white/75">Your records cover 92% of estimated monthly VAT liability. Complete pending TIN verifications to maximize deductions.</p><Button variant="secondary" className="mt-6">Generate Compliance Report</Button></Card>
     </div>
@@ -168,8 +168,8 @@ export function DashboardFormModal({ open, title, description, fields, onClose, 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[70] grid place-items-center bg-[#191C1E]/45 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="dashboard-modal-title">
-      <Card className="max-h-[90vh] w-full max-w-2xl overflow-hidden shadow-2xl">
+    <div className="fixed inset-0 z-[70] grid place-items-center overflow-y-auto bg-[#191C1E]/45 p-3 backdrop-blur-sm sm:p-4" role="dialog" aria-modal="true" aria-labelledby="dashboard-modal-title">
+      <Card className="max-h-[92vh] w-full max-w-2xl overflow-hidden shadow-2xl">
         <div className="flex items-start justify-between gap-4 border-b border-[#C5C4DA] bg-[#F7F9FB] p-6">
           <div>
             <h2 id="dashboard-modal-title" className="text-2xl font-bold text-[#191C1E]">{title}</h2>
@@ -196,13 +196,13 @@ function FieldControl({ field }: { field: string }) {
     return <div className="md:col-span-2 rounded-xl border border-dashed border-[#C5C4DA] bg-[#F7F9FB] p-8 text-center"><Upload className="mx-auto h-8 w-8 text-[#757588]" /><p className="mt-3 font-bold">Click to upload or drag and drop</p><p className="mt-1 text-sm text-[#757588]">TIN certificate, contract, or KYC documents (PDF, JPG up to 10MB)</p></div>;
   }
   if (field.startsWith("Automatically") || field.startsWith("Attach")) return <CheckLine label={field} />;
-  if (field === "VAT Registered") return <label className="flex items-center justify-between rounded-xl bg-[#F1F4F8] p-4 text-sm font-bold text-[#454557] md:col-span-2">VAT Registered <input type="checkbox" defaultChecked className="h-5 w-5 accent-[#1117E8]" /></label>;
+  if (field === "VAT Registered") return <label className="flex items-center justify-between gap-3 rounded-xl bg-[#F1F4F8] p-4 text-sm font-bold text-[#454557] md:col-span-2">VAT Registered <input type="checkbox" defaultChecked className="h-5 w-5 shrink-0 accent-[#1117E8]" /></label>;
   return <Input label={field} wide={field.includes("Address") || field.includes("Message") || field.includes("Notes")} />;
 }
 
 export function FormShell({ title, sideTitle, sections, buttons }: { title: string; sideTitle: string; sections: [string, string[]][]; buttons: string[] }) {
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+    <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
       <div className="space-y-5">
         <h2 className="sr-only">{title}</h2>
         {sections.map(([section, fields]) => (
@@ -225,7 +225,7 @@ export function AddCustomerModal({ open, onClose }: { open: boolean; onClose: ()
   if (!open) return null;
   const fields = ["Business Name", "RC Number", "Contact Person", "Email Address", "Phone Number", "Tax Identification Number (TIN)"];
   return (
-    <div className="fixed inset-0 z-[70] grid place-items-center bg-[#191C1E]/45 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="add-customer-title">
+    <div className="fixed inset-0 z-[70] grid place-items-center overflow-y-auto bg-[#191C1E]/45 p-3 backdrop-blur-sm sm:p-4" role="dialog" aria-modal="true" aria-labelledby="add-customer-title">
       <Card className="w-full max-w-xl overflow-hidden shadow-2xl">
         <div className="flex items-start justify-between border-b border-[#C5C4DA] bg-[#F7F9FB] p-6"><div><h2 id="add-customer-title" className="text-2xl font-bold">Add New Customer</h2><p className="mt-1 text-sm text-[#454557]">Onboard a new business partner to your dashboard.</p></div><button type="button" onClick={onClose} aria-label="Close add customer modal" className="rounded-lg p-2 text-[#454557] hover:bg-white"><X className="h-5 w-5" /></button></div>
         <div className="grid gap-4 p-6 sm:grid-cols-2">{fields.map((field, index) => <label key={field} className={`block text-sm font-bold text-[#191C1E] ${index === 0 || index === 5 ? "sm:col-span-2" : ""}`}><span className="flex items-center justify-between">{field}{field === "RC Number" ? <span className="text-xs font-semibold text-[#757588]">Optional</span> : null}</span><input placeholder={field === "Business Name" ? "e.g. Acme Corporation Ltd" : field === "Tax Identification Number (TIN)" ? "12345678-0001" : field} className="mt-2 h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-4 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]" /></label>)}<div className="sm:col-span-2 rounded-lg bg-[#DADEFD] p-3 text-sm font-semibold text-[#0001B1]">A valid TIN is required for e-invoicing and VAT compliance. Confirm this number before submission to avoid filing errors.</div></div>
@@ -237,7 +237,7 @@ export function AddCustomerModal({ open, onClose }: { open: boolean; onClose: ()
 
 export function Toast({ show, children }: { show: boolean; children: React.ReactNode }) {
   if (!show) return null;
-  return <div className="fixed bottom-6 right-6 z-[80] rounded-xl bg-[#191C1E] px-5 py-4 text-sm font-semibold text-white shadow-2xl"><span className="flex items-center gap-3"><CheckCircle2 className="h-5 w-5 text-green-400" /> {children}</span></div>;
+  return <div className="fixed bottom-4 left-3 right-3 z-[80] rounded-xl bg-[#191C1E] px-5 py-4 text-sm font-semibold text-white shadow-2xl sm:left-auto sm:right-6"><span className="flex items-center gap-3"><CheckCircle2 className="h-5 w-5 shrink-0 text-green-400" /> {children}</span></div>;
 }
 
 export function GenericTablePage({ title, subtitle, button, metrics, tableTitle, columns, data, bottom = false, onPrimaryAction }: { title: string; subtitle: string; button: string; metrics: string[][]; tableTitle: string; columns: string[]; data: string[][]; bottom?: boolean; onPrimaryAction?: () => void }) {

@@ -30,7 +30,7 @@ export function PaymentLinksPage() {
         <MetricCard label="Paid Links" value="41" tone="primary" icon={ShoppingCart} />
         <MetricCard label="Expired Links" value="6" tone="danger" icon={Link2} />
       </div>
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+      <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-6">
           <Card className="p-6">
             <h2 className="text-xl font-bold">Create New Payment Link</h2>
@@ -56,7 +56,7 @@ export function PaymentLinksPage() {
           />
         </div>
         <aside className="space-y-6">
-          <Card className="bg-[#1117E8] p-6 text-white"><h2 className="text-xl font-bold">Live Summary</h2><div className="mt-5 space-y-4 text-sm"><p className="flex justify-between">Total Outstanding <b>₦2,450,000.00</b></p><p className="flex justify-between">Links Generated Today <b>12</b></p><p className="flex justify-between">Expected Inflow <b>₦8,940,000.00</b></p></div></Card>
+          <Card className="bg-[#1117E8] p-6 text-white"><h2 className="text-xl font-bold">Live Summary</h2><div className="mt-5 space-y-4 text-sm"><p className="flex flex-col gap-1 sm:flex-row sm:justify-between">Total Outstanding <b>₦2,450,000.00</b></p><p className="flex flex-col gap-1 sm:flex-row sm:justify-between">Links Generated Today <b>12</b></p><p className="flex flex-col gap-1 sm:flex-row sm:justify-between">Expected Inflow <b>₦8,940,000.00</b></p></div></Card>
           <Card className="p-6 text-center"><ShoppingCart className="mx-auto h-10 w-10 text-[#1117E8]" /><h3 className="mt-5 text-xl font-bold">PayTraka SME Store</h3><p className="text-sm text-[#454557]">Invoice #INV-2026-089</p><div className="my-5 rounded-xl border border-[#C5C4DA] p-5"><p className="text-xs uppercase text-[#454557]">Amount Due</p><p className="text-3xl font-extrabold text-[#0001B1]">₦450,000</p></div><Button className="w-full">Pay Now</Button></Card>
           <Card className="bg-[#EAEDFF] p-5"><h3 className="font-bold text-[#0001B1]">Pro Tip</h3><p className="mt-2 text-sm leading-6 text-[#454557]">Setting an expiry date on payment links increases conversion by 24% for Nigerian B2B customers.</p></Card>
         </aside>

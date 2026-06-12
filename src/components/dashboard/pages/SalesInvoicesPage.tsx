@@ -20,7 +20,7 @@ export function SalesInvoicesPage() {
         fields={["Customer", "Invoice number", "Issue date", "Due date", "Items", "Notes"]}
       />
       <ComplianceAlert title="Validation Required" text="3 invoices are missing TIN data for FIRS submission. Fix Now" badge="3 Issues" />
-      <div className="mb-6 grid gap-6 lg:grid-cols-[1fr_280px]"><FilterBar /><MetricCard label="Total Outstanding" value="₦12,450,000.00" meta="↗ 12% from last month" tone="primary" /></div>
+      <div className="mb-6 grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_280px]"><FilterBar /><MetricCard label="Total Outstanding" value="₦12,450,000.00" meta="↗ 12% from last month" tone="primary" /></div>
       <DataTable title="Recent Invoices" columns={["Invoice #", "Customer", "Issue Date", "Due Date", "Total Amount", "Status", "FIRS/NRS", "Actions"]} rows={salesInvoiceRows.map(([invoice, customer, issue, due, total, status, firs]) => ({ "Invoice #": <b className="text-[#0001B1]">{invoice}</b>, Customer: <span className="whitespace-pre-line font-semibold">{customer}</span>, "Issue Date": issue, "Due Date": due, "Total Amount": <b>{total}</b>, Status: <StatusBadge>{status}</StatusBadge>, "FIRS/NRS": <StatusBadge>{firs}</StatusBadge>, Actions: rowActions(firs === "Failed" ? <Button className="min-h-9 px-3">Submit FIRS</Button> : null) }))} footer="Showing 1-10 of 248 invoices" />
     </>
   );

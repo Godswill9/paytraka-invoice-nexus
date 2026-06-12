@@ -58,7 +58,7 @@ export function Sidebar({ open, setOpen }: { open: boolean; setOpen: (open: bool
   };
 
   const sidebar = (
-    <aside className="flex h-full min-h-screen w-[272px] flex-col border-r border-[#C5C4DA] bg-white px-5 py-7">
+    <aside className="flex h-full min-h-screen w-[min(272px,85vw)] flex-col border-r border-[#C5C4DA] bg-white px-5 py-7 lg:w-[272px]">
       <div className="flex items-start justify-between gap-3">
         <Link href="/dashboard" className="inline-flex">
           <Image src="/paytraka_logo/paytraka-logo-transparent.png" alt="PayTraka" width={132} height={38} className="h-8 w-auto object-contain" priority />
@@ -97,7 +97,7 @@ export function Sidebar({ open, setOpen }: { open: boolean; setOpen: (open: bool
   return (
     <>
       <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:block">{sidebar}</div>
-      {open ? <div className="fixed inset-0 z-50 bg-black/30 lg:hidden" onClick={() => setOpen(false)}><div className="h-full" onClick={(e) => e.stopPropagation()}>{sidebar}</div></div> : null}
+      {open ? <div className="fixed inset-0 z-50 overflow-hidden bg-black/30 lg:hidden" onClick={() => setOpen(false)}><div className="h-full max-w-[85vw]" onClick={(e) => e.stopPropagation()}>{sidebar}</div></div> : null}
     </>
   );
 }
