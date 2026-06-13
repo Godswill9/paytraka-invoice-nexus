@@ -12,6 +12,7 @@ import {
   KeyRound,
   Landmark,
   Mail,
+  Menu,
   MapPin,
   Moon,
   Phone,
@@ -24,12 +25,11 @@ import Image from "next/image";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 
-type PageKey = "home" | "product" | "pricing" | "solutions" | "resources" | "company";
+type PageKey = "home" | "product" | "solutions" | "resources" | "company";
 
 const navLinks: Array<{ label: string; href: string; key: PageKey }> = [
   { label: "Home", href: "/", key: "home" },
   { label: "Product", href: "/product", key: "product" },
-  { label: "Pricing", href: "/pricing", key: "pricing" },
   { label: "Solutions", href: "/solutions", key: "solutions" },
   { label: "Resources", href: "/resources", key: "resources" },
   { label: "Company", href: "/company", key: "company" },
@@ -42,7 +42,7 @@ function cx(...classes: Array<string | false | undefined>) {
 export function SiteNavbar({ active }: { active: PageKey }) {
   return (
     <header className="sticky top-0 z-50 border-b border-[#C5C4DA]/50 bg-white/95 backdrop-blur-xl">
-      <nav className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-5 md:px-8" aria-label="Main navigation">
+      <nav className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-3 px-4 md:px-8" aria-label="Main navigation">
         <Link href="/" className="flex items-center gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1117E8]">
           <Image src="/paytraka_logo/paytraka-logo-navbar.png" alt="PayTraka" width={170} height={48} className="h-9 w-auto object-contain md:h-11" priority />
         </Link>
@@ -68,9 +68,24 @@ export function SiteNavbar({ active }: { active: PageKey }) {
           <a href="/login" className="hidden min-h-10 items-center rounded-lg border border-[#C5C4DA] bg-white px-5 text-sm font-bold text-[#0001B1] transition hover:border-[#1117E8] sm:inline-flex">
             Sign in
           </a>
-          <a href="/signup" className="inline-flex min-h-10 items-center rounded-lg bg-[#1117E8] px-5 text-sm font-bold text-white shadow-[0_12px_28px_rgba(17,23,232,0.2)] transition hover:bg-[#0001B1]">
+          <a href="/signup" className="inline-flex min-h-10 items-center rounded-lg bg-[#1117E8] px-3 text-xs font-bold text-white shadow-[0_12px_28px_rgba(17,23,232,0.2)] transition hover:bg-[#0001B1] sm:px-5 sm:text-sm">
             Get started
           </a>
+          <details className="group relative lg:hidden">
+            <summary className="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-lg border border-[#C5C4DA] bg-white text-[#0001B1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1117E8]" aria-label="Open navigation menu">
+              <Menu size={18} aria-hidden="true" />
+            </summary>
+            <div className="absolute right-0 mt-3 w-[min(14rem,calc(100vw-2rem))] rounded-xl border border-[#C5C4DA] bg-white p-3 shadow-xl">
+              {navLinks.map((link) => (
+                <a key={link.key} href={link.href} className={cx("block rounded-lg px-3 py-3 text-sm font-medium hover:bg-[#F7F9FB]", active === link.key ? "text-[#0001B1]" : "text-[#191C1E]")}>
+                  {link.label}
+                </a>
+              ))}
+              <a href="/login" className="block rounded-lg px-3 py-3 text-sm font-medium text-[#191C1E] hover:bg-[#F7F9FB] hover:text-[#0001B1]">
+                Sign in
+              </a>
+            </div>
+          </details>
         </div>
       </nav>
     </header>
@@ -120,7 +135,7 @@ function ActionLink({ children, href = "#", variant = "primary" }: { children: R
     <a
       href={href}
       className={cx(
-        "inline-flex min-h-12 items-center justify-center rounded-lg px-6 text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1117E8]",
+        "inline-flex min-h-12 max-w-full items-center justify-center rounded-lg px-6 text-center text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1117E8]",
         variant === "primary" ? "bg-[#1117E8] text-white shadow-[0_12px_28px_rgba(17,23,232,0.18)] hover:bg-[#0001B1]" : "border border-[#D7DEE8] bg-white text-[#0001B1] hover:border-[#1117E8]",
       )}
     >
@@ -158,10 +173,10 @@ export function ProductPage() {
       <SiteNavbar active="product" />
       <main>
         <section className="px-5 py-24 text-center md:px-8">
-          <h1 className="mx-auto max-w-4xl text-5xl font-extrabold leading-tight text-[#191C1E] md:text-6xl">
+          <h1 className="mx-auto max-w-4xl text-4xl font-extrabold leading-tight text-[#191C1E] md:text-6xl">
             Comprehensive Tax Compliance Features
           </h1>
-          <p className="mx-auto mt-8 max-w-3xl text-xl leading-9 text-[#454557]">
+          <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-[#454557] md:text-xl md:leading-9">
             PayTraka streamlines your entire invoicing and compliance workflow. From business onboarding to FIRS/NRS validation, everything is designed for accuracy, speed, and institutional trust.
           </p>
         </section>
@@ -178,7 +193,7 @@ export function ProductPage() {
             </article>
           ))}
           <article className="rounded-xl border border-[#D7DEE8] bg-white p-7 shadow-sm md:col-span-2">
-            <div className="grid gap-8 md:grid-cols-[0.9fr_1.1fr] md:items-center">
+            <div className="grid min-w-0 gap-8 md:grid-cols-[0.9fr_minmax(0,1.1fr)] md:items-center">
               <div>
                 <IconBadge icon={FileText} />
                 <h2 className="mt-8 text-2xl font-bold text-[#191C1E]">Sales & Purchase Invoices</h2>
@@ -209,7 +224,7 @@ export function ProductPage() {
             <p className="mt-8 inline-flex rounded bg-white/15 px-3 py-1 text-sm font-semibold">Pre-check Active</p>
           </article>
           <article className="rounded-xl border border-[#D7DEE8] bg-white p-7 shadow-sm md:col-span-2">
-            <div className="grid gap-8 md:grid-cols-[0.9fr_1.1fr] md:items-center">
+            <div className="grid min-w-0 gap-8 md:grid-cols-[0.9fr_minmax(0,1.1fr)] md:items-center">
               <div className="rounded-xl border border-[#D7DEE8] bg-[#F7F9FB] p-5">
                 {["Invoice Generated", "Submitting to FIRS", "NRS Validated"].map((step, index) => (
                   <div key={step} className="flex gap-4 pb-5 last:pb-0">
@@ -258,15 +273,15 @@ export function SolutionsPage() {
           <span className="inline-flex rounded-full border border-[#C5C4DA] bg-[#EEF1FF] px-4 py-2 text-sm font-bold text-[#0001B1]">
             FIRS Compliant Infrastructure
           </span>
-          <h1 className="mx-auto mt-8 max-w-5xl text-5xl font-extrabold leading-tight text-[#121B3A] md:text-6xl">
+          <h1 className="mx-auto mt-8 max-w-5xl text-4xl font-extrabold leading-tight text-[#121B3A] md:text-6xl">
             Institutional Precision for <span className="text-[#0001B1]">E-Invoicing Readiness</span>
           </h1>
-          <p className="mx-auto mt-8 max-w-4xl text-xl leading-9 text-[#66728A]">
+          <p className="mx-auto mt-8 max-w-4xl text-lg leading-8 text-[#66728A] md:text-xl md:leading-9">
             Navigate the complexities of FIRS/NRS mandates with a structured, transparent workflow. From initial draft to official submission, PayTraka ensures every byte of financial data is compliant.
           </p>
         </section>
         <section className="mx-auto max-w-7xl px-5 pb-24 md:px-8">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-3xl font-bold text-[#121B3A]">Document Lifecycle Pipeline</h2>
             <p className="hidden font-bold text-[#66728A] sm:block">Standard Operating Procedure</p>
           </div>
@@ -305,7 +320,7 @@ export function SolutionsPage() {
                 Execute seamless, direct transmission of validated invoices to the National Record System. Receive official digital receipts and cryptographic stamps instantly.
               </p>
               <div className="mt-9 space-y-4">
-                <div className="flex items-center justify-between rounded-lg border border-white/15 bg-white/5 p-4">
+                <div className="flex flex-col gap-3 rounded-lg border border-white/15 bg-white/5 p-4 sm:flex-row sm:items-center sm:justify-between">
                   <span className="flex items-center gap-3 font-bold"><KeyRound className="text-green-400" aria-hidden="true" /> Direct API Integration</span>
                   <span className="rounded bg-green-500/20 px-3 py-1 text-sm font-bold text-green-400">Active</span>
                 </div>
@@ -320,89 +335,30 @@ export function SolutionsPage() {
   );
 }
 
-export function PricingPage() {
-  const plans = [
-    ["Starter", "Essential invoicing tools for emerging SMEs.", "₦0", "/month", ["Up to 50 invoices/month", "Basic customer directory", "Standard PDF exports"], false],
-    ["Compliance Pro", "Automated validation & tracking for growing businesses.", "₦15,000", "/month", ["Direct FIRS API Integration", "Unlimited invoices", "Real-time status badges", "Automated tax calculations"], true],
-    ["Enterprise", "Multi-client management for financial consultants.", "Custom", "", ["Everything in Pro", "Multi-entity dashboard", "Dedicated account manager", "Custom API limits"], false],
-  ] as const;
-
-  return (
-    <div className="min-h-screen bg-white">
-      <SiteNavbar active="pricing" />
-      <main className="px-5 py-24 md:px-8">
-        <section className="mx-auto max-w-7xl text-center">
-          <h1 className="mx-auto max-w-5xl text-5xl font-extrabold leading-tight text-[#121B3A] md:text-6xl">
-            Transparent pricing for <span className="text-[#0001B1]">seamless compliance.</span>
-          </h1>
-          <p className="mx-auto mt-7 max-w-3xl text-xl leading-8 text-[#66728A]">
-            Choose the right plan to align your invoicing with FIRS regulations. Simple, predictable, and built for businesses scaling in Nigeria.
-          </p>
-          <div className="mt-20 grid gap-8 text-left lg:grid-cols-3">
-            {plans.map(([name, body, price, suffix, features, popular]) => (
-              <article key={name} className={cx("relative rounded-xl border bg-white p-8", popular ? "border-[#1117E8] shadow-[0_18px_45px_rgba(17,23,232,0.15)]" : "border-[#D7DEE8]")}>
-                {popular ? <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#1117E8] px-5 py-1 text-xs font-bold tracking-wide text-white">MOST POPULAR</span> : null}
-                <h2 className="text-3xl font-bold text-[#121B3A]">{name}</h2>
-                <p className="mt-4 text-lg leading-7 text-[#66728A]">{body}</p>
-                <p className="mt-8 text-[#121B3A]"><span className="text-4xl font-extrabold">{price}</span><span className="ml-2 text-base text-[#66728A]">{suffix}</span></p>
-                <ul className="mt-8 space-y-4">
-                  {features.map((feature) => (
-                    <li key={feature} className="flex items-center gap-3 text-base text-[#454557]">
-                      <CheckCircle2 className="h-5 w-5 text-[#1117E8]" aria-hidden="true" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                <ActionLink href="#contact" variant={popular ? "primary" : "secondary"}>{popular ? "Get started" : name === "Enterprise" ? "Contact Sales" : "Get started"}</ActionLink>
-              </article>
-            ))}
-          </div>
-        </section>
-        <section className="mx-auto mt-24 max-w-4xl border-t border-[#D7DEE8] pt-20">
-          <h2 className="text-center text-4xl font-bold text-[#121B3A]">Frequently Asked Questions</h2>
-          <div className="mt-10 space-y-5">
-            {[
-              ["How does FIRS validation work?", "On the Compliance Pro plan, PayTraka automatically routes your generated invoices through approved integration pathways to receive validation before sending to your client."],
-              ["Can I upgrade from Starter to Pro later?", "Yes, you can seamlessly upgrade at any point. Your existing invoicing data will remain available for compliance tracking."],
-              ["Is my financial data secure?", "Absolutely. We use strong encryption patterns and maintain strict adherence to Nigerian data protection expectations."],
-            ].map(([q, a]) => (
-              <article key={q} className="rounded-lg border border-[#D7DEE8] bg-white p-6">
-                <h3 className="font-bold text-[#121B3A]">{q}</h3>
-                <p className="mt-4 text-lg leading-8 text-[#66728A]">{a}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-      </main>
-      <SimpleFooter />
-    </div>
-  );
-}
-
 export function ResourcesPage() {
   return (
     <div className="min-h-screen bg-[#F7F9FB]">
       <SiteNavbar active="resources" />
       <main>
-        <section className="border-b border-[#D7DEE8] bg-[#F4F6FF] px-5 py-24 text-center md:px-8">
-          <h1 className="text-5xl font-extrabold text-[#0001B1] md:text-6xl">Resources & Support</h1>
-          <p className="mx-auto mt-6 max-w-3xl text-xl leading-8 text-[#454557]">
+        <section className="border-b border-[#D7DEE8] bg-[#F4F6FF] px-5 py-20 text-center md:px-8 md:py-24">
+          <h1 className="text-4xl font-extrabold text-[#0001B1] md:text-6xl">Resources & Support</h1>
+          <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-[#454557] md:text-xl">
             Everything you need to master PayTraka and ensure complete FIRS/NRS compliance for your business.
           </p>
-          <label className="mx-auto mt-10 flex max-w-2xl items-center gap-4 rounded-lg border border-[#D7DEE8] bg-white px-5 py-4 text-left">
+          <label className="mx-auto mt-10 flex max-w-2xl items-center gap-3 rounded-lg border border-[#D7DEE8] bg-white px-4 py-4 text-left sm:gap-4 sm:px-5">
             <Search className="text-[#66728A]" aria-hidden="true" />
             <span className="sr-only">Search resources</span>
-            <input className="w-full bg-transparent text-base outline-none placeholder:text-[#757588]" placeholder="Search guides, FAQs, and documentation..." />
+            <input className="min-w-0 w-full bg-transparent text-base outline-none placeholder:text-[#757588]" placeholder="Search guides, FAQs, and documentation..." />
           </label>
         </section>
         <section className="mx-auto max-w-7xl px-5 py-20 md:px-8">
-          <h2 className="flex items-center gap-4 text-3xl font-bold text-[#191C1E]">
+          <h2 className="flex items-center gap-4 text-2xl font-bold text-[#191C1E] sm:text-3xl">
             <ShieldCheck className="text-[#1294D8]" aria-hidden="true" /> FIRS/NRS Readiness Guide
           </h2>
           <div className="mt-10 grid gap-6 lg:grid-cols-[2fr_1fr]">
             <article className="rounded-xl border border-[#D7DEE8] bg-white p-7">
               <span className="rounded-full bg-[#EEF1FF] px-4 py-2 text-sm font-bold text-[#0001B1]">Complete Guide</span>
-              <h3 className="mt-7 text-3xl font-bold">Transitioning to e-Invoicing</h3>
+                <h3 className="mt-7 text-2xl font-bold sm:text-3xl">Transitioning to e-Invoicing</h3>
               <p className="mt-4 text-lg leading-8 text-[#454557]">
                 A step-by-step roadmap for SMEs to migrate from manual invoicing to full FIRS compliance using PayTraka. Learn about required documentation and technical prerequisites.
               </p>
@@ -459,15 +415,15 @@ export function CompanyPage() {
     <div className="min-h-screen bg-[#F7F9FB]">
       <SiteNavbar active="company" />
       <main>
-        <section className="mx-auto grid max-w-7xl gap-12 px-5 py-24 md:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
+        <section className="mx-auto grid max-w-7xl gap-12 px-5 py-20 md:px-8 md:py-24 lg:grid-cols-[0.95fr_minmax(0,1.05fr)] lg:items-center">
           <div>
-            <h1 className="text-5xl font-extrabold leading-tight text-[#191C1E] md:text-6xl">
+            <h1 className="text-4xl font-extrabold leading-tight text-[#191C1E] md:text-6xl">
               Simplifying Tax Compliance for Nigerian Businesses.
             </h1>
-            <p className="mt-7 max-w-2xl text-lg leading-8 text-[#66728A]">
+            <p className="mt-7 max-w-2xl text-base leading-8 text-[#66728A] md:text-lg">
               PayTraka is built to bring institutional trust and technical precision to everyday operations. We empower SMEs to transition seamlessly from manual records to digital, FIRS-aligned compliance.
             </p>
-            <div className="mt-9 flex flex-col gap-4 sm:flex-row">
+            <div className="mt-9 flex flex-col gap-4 sm:flex-row sm:flex-wrap">
               <ActionLink href="#contact">Book a Demo</ActionLink>
               <ActionLink href="/resources" variant="secondary">Learn More</ActionLink>
             </div>
@@ -502,7 +458,7 @@ export function CompanyPage() {
             </div>
           </div>
         </section>
-        <section id="contact" className="mx-auto grid max-w-7xl gap-12 px-5 py-24 md:px-8 lg:grid-cols-[0.9fr_1.1fr]">
+        <section id="contact" className="mx-auto grid max-w-7xl gap-12 px-5 py-20 md:px-8 md:py-24 lg:grid-cols-[0.9fr_minmax(0,1.1fr)]">
           <div>
             <h2 className="text-3xl font-bold">Get in Touch</h2>
             <p className="mt-5 max-w-xl text-lg leading-8 text-[#66728A]">
@@ -526,7 +482,7 @@ export function CompanyPage() {
               ))}
             </div>
           </div>
-          <form className="rounded-xl border border-[#D7DEE8] bg-white p-8 shadow-[0_18px_45px_rgba(25,28,30,0.08)]">
+          <form className="rounded-xl border border-[#D7DEE8] bg-white p-5 shadow-[0_18px_45px_rgba(25,28,30,0.08)] sm:p-8">
             <div className="grid gap-5 sm:grid-cols-2">
               <Input label="First Name" placeholder="Jane" />
               <Input label="Last Name" placeholder="Doe" />

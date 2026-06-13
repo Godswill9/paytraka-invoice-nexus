@@ -28,7 +28,6 @@ import type { LucideIcon } from "lucide-react";
 const navLinks = [
   { label: "Home", href: "/" },
   { label: "Product", href: "/product" },
-  { label: "Pricing", href: "/pricing" },
   { label: "Solutions", href: "/solutions" },
   { label: "Resources", href: "/resources" },
   { label: "Company", href: "/company" },
@@ -81,33 +80,6 @@ const features: Array<{ icon: LucideIcon; title: string; description: string }> 
   { icon: LayoutDashboard, title: "VAT Reports", description: "Instant generation of summary sheets for audit." },
 ];
 
-const pricing = [
-  {
-    name: "Starter",
-    price: "₦5k",
-    suffix: "/mo",
-    features: ["Up to 50 Invoices/mo", "Basic Validation", "1 User Access"],
-    cta: "Choose Starter",
-    highlighted: false,
-  },
-  {
-    name: "Compliance Pro",
-    price: "₦15k",
-    suffix: "/mo",
-    features: ["Unlimited Invoices", "Priority FIRS Submission", "5 Team Members", "Advance Reports"],
-    cta: "Choose Pro",
-    highlighted: true,
-  },
-  {
-    name: "Consultant",
-    price: "Custom",
-    suffix: "",
-    features: ["Manage Multi-clients", "White-label Reports", "API Integration Access"],
-    cta: "Talk to Sales",
-    highlighted: false,
-  },
-];
-
 const faqs = [
   {
     question: "Is PayTraka approved by the FIRS?",
@@ -145,7 +117,7 @@ function ButtonLink({
 
   return (
     <a
-      className={`inline-flex min-h-12 items-center justify-center rounded-lg px-6 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1117E8] ${variants[variant]} ${className}`}
+      className={`inline-flex min-h-12 max-w-full items-center justify-center rounded-lg px-6 text-center text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1117E8] ${variants[variant]} ${className}`}
       href={href}
     >
       {children}
@@ -164,7 +136,7 @@ function SectionHeader({
 }) {
   return (
     <div className={align === "center" ? "mx-auto max-w-3xl text-center" : "max-w-2xl"}>
-      <h2 className="text-3xl font-bold tracking-normal text-[#191C1E] md:text-4xl">{title}</h2>
+      <h2 className="text-2xl font-bold tracking-normal text-[#191C1E] sm:text-3xl md:text-4xl">{title}</h2>
       <p className="mt-4 text-base leading-7 text-[#454557]">{description}</p>
     </div>
   );
@@ -173,7 +145,7 @@ function SectionHeader({
 function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-[#C5C4DA]/60 bg-white/90 backdrop-blur-xl">
-      <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 md:px-8" aria-label="Main navigation">
+      <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-3 px-4 md:px-8" aria-label="Main navigation">
         <Link href="/" className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1117E8]">
           <Image src="/paytraka_logo/paytraka-logo-navbar.png" alt="PayTraka" width={170} height={48} className="h-9 w-auto object-contain md:h-11" priority />
         </Link>
@@ -188,14 +160,14 @@ function Navbar() {
           <a href="/login" className="hidden text-sm font-semibold text-[#191C1E] transition hover:text-[#0001B1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1117E8] sm:inline-flex">
             Sign in
           </a>
-          <ButtonLink className="min-h-10 px-5 text-xs" href="/signup">
+          <ButtonLink className="min-h-10 px-3 text-xs sm:px-5" href="/signup">
             Get started
           </ButtonLink>
           <details className="group relative lg:hidden">
             <summary className="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-lg border border-[#C5C4DA] bg-white text-[#0001B1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1117E8]" aria-label="Open navigation menu">
               <Menu aria-hidden="true" size={18} />
             </summary>
-            <div className="absolute right-0 mt-3 w-56 rounded-xl border border-[#C5C4DA] bg-white p-3 shadow-xl">
+            <div className="absolute right-0 mt-3 w-[min(14rem,calc(100vw-2rem))] rounded-xl border border-[#C5C4DA] bg-white p-3 shadow-xl">
               {navLinks.map((link) => (
                 <a key={link.href} href={link.href} className="block rounded-lg px-3 py-3 text-sm font-medium text-[#191C1E] hover:bg-[#F7F9FB] hover:text-[#0001B1]">
                   {link.label}
@@ -217,7 +189,7 @@ function Navbar() {
 
 function InvoiceMockup() {
   return (
-    <div className="relative mx-auto w-full max-w-xl">
+    <div className="relative mx-auto w-full max-w-xl min-w-0">
       <div className="absolute -right-6 top-8 hidden rounded-full bg-[#1117E8] px-4 py-3 text-sm font-black text-white shadow-xl lg:block">
         NRS
       </div>
@@ -225,24 +197,24 @@ function InvoiceMockup() {
         VAT
       </div>
       <div className="overflow-hidden rounded-2xl border border-[#D7DEE8] bg-white shadow-[0_28px_70px_rgba(25,28,30,0.18)]">
-        <div className="flex items-center gap-3 bg-[#202827] px-5 py-3">
+        <div className="flex min-w-0 items-center gap-3 bg-[#202827] px-4 py-3 sm:px-5">
           <span className="h-3 w-3 rounded-full bg-white/25" />
           <span className="h-3 w-3 rounded-full bg-white/25" />
           <span className="h-3 w-3 rounded-full bg-white/25" />
-          <span className="ml-3 rounded bg-white/10 px-4 py-1 text-xs font-semibold text-white/80">paytraka.com/dashboard</span>
+          <span className="ml-1 min-w-0 truncate rounded bg-white/10 px-3 py-1 text-xs font-semibold text-white/80 sm:ml-3 sm:px-4">paytraka.com/dashboard</span>
         </div>
-        <div className="grid grid-cols-[72px_1fr]">
-          <div className="border-r border-[#D7DEE8] bg-[#F2F4FF] p-4">
+        <div className="grid min-w-0 grid-cols-[52px_minmax(0,1fr)] sm:grid-cols-[72px_minmax(0,1fr)]">
+          <div className="border-r border-[#D7DEE8] bg-[#F2F4FF] p-3 sm:p-4">
             <span className="block h-9 w-9 rounded-lg bg-[#1117E8]" />
             {[1, 2, 3, 4].map((item) => (
               <span key={item} className="mt-4 block h-9 w-9 rounded-lg bg-[#DADEFD]" />
             ))}
           </div>
-          <div className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
+          <div className="min-w-0 p-4 sm:p-5">
+            <div className="flex min-w-0 items-center justify-between gap-3">
+              <div className="min-w-0">
                 <p className="text-xs text-[#757588]">Today</p>
-                <h2 className="text-lg font-black text-[#191C1E]">Abuja Prime Hotels Ltd</h2>
+                <h2 className="truncate text-base font-black text-[#191C1E] sm:text-lg">Abuja Prime Hotels Ltd</h2>
               </div>
               <span className="rounded bg-[#DADEFD] px-3 py-1 text-xs font-black text-[#0001B1]">Ready</span>
             </div>
@@ -270,10 +242,10 @@ function InvoiceMockup() {
                 ["INV-0041", "Kano Retail Hub", "₦142,000", "Partial", "bg-[#F59E0B]"],
                 ["INV-0040", "Enugu Agro Ventures", "₦67,500", "Ready", "bg-[#1117E8]"],
               ].map(([id, client, amount, status, dot]) => (
-                <div key={id} className="grid grid-cols-[1fr_auto] gap-4 border-b border-[#D7DEE8] px-4 py-3 last:border-b-0">
-                  <div>
+                <div key={id} className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-3 border-b border-[#D7DEE8] px-4 py-3 last:border-b-0 sm:gap-4">
+                  <div className="min-w-0">
                     <p className="font-black text-[#191C1E]">{id}</p>
-                    <p className="text-xs text-[#454557]">{client}</p>
+                    <p className="truncate text-xs text-[#454557]">{client}</p>
                   </div>
                   <div className="text-right">
                     <p className="font-black text-[#191C1E]">{amount}</p>
@@ -300,8 +272,8 @@ function InvoiceMockup() {
 function HeroSection() {
   return (
     <section className="overflow-hidden border-b border-[#D7DEE8] bg-[radial-gradient(circle_at_78%_18%,rgba(218,222,253,0.9)_0,rgba(247,249,251,0)_32%),linear-gradient(180deg,#F7F9FB_0%,#FFFFFF_100%)]">
-      <div className="mx-auto grid min-h-[calc(100svh-5rem)] max-w-7xl items-center gap-10  py-12 md:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:py-10">
-        <div className="reveal-up">
+      <div className="mx-auto grid min-h-[calc(100svh-5rem)] max-w-7xl items-center gap-10 px-5 py-12 md:px-8 lg:grid-cols-[0.95fr_minmax(0,1.05fr)] lg:py-10">
+        <div className="reveal-up min-w-0">
           <span className="inline-flex rounded-full border border-[#C5C4DA] bg-[#DADEFD]/70 px-4 py-2 text-sm font-semibold text-[#0001B1]">
             E-Invoicing Readiness Platform for Nigerian Businesses
           </span>
@@ -317,14 +289,14 @@ function HeroSection() {
               Book a Demo
             </ButtonLink>
           </div>
-          <div className="mt-10 grid max-w-xl grid-cols-3 gap-5 text-[#191C1E]">
+          <div className="mt-10 grid max-w-xl gap-5 text-[#191C1E] sm:grid-cols-3">
             {[
               ["Create", "structured invoices"],
               ["Validate", "tax-ready records"],
               ["Submit", "APP/SI pathways"],
             ].map(([value, label]) => (
               <div key={label}>
-                <p className="text-3xl font-black">{value}</p>
+                <p className="text-2xl font-black sm:text-3xl">{value}</p>
                 <p className="text-sm font-medium text-[#454557]">{label}</p>
               </div>
             ))}
@@ -484,49 +456,6 @@ function ConsultantsSection() {
   );
 }
 
-function PricingSection() {
-  return (
-    <section className="bg-[#F7F9FB] py-16 md:py-24">
-      <div className="reveal-up mx-auto max-w-7xl px-5 md:px-8">
-        <SectionHeader
-          title="Ready for every stage of your journey"
-          description="Simple, transparent pricing for Nigerian businesses of all sizes."
-        />
-        <div className="mx-auto mt-12 grid max-w-5xl gap-6 md:grid-cols-3">
-          {pricing.map((plan) => (
-            <article
-              key={plan.name}
-              className={`relative rounded-xl border bg-white p-8 ${plan.highlighted ? "border-[#1117E8] shadow-[0_20px_45px_rgba(17,23,232,0.18)]" : "border-[#C5C4DA]"}`}
-            >
-              {plan.highlighted ? (
-                <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#1117E8] px-4 py-1 text-xs font-extrabold text-white">
-                  MOST POPULAR
-                </span>
-              ) : null}
-              <h3 className="text-lg font-bold text-[#191C1E]">{plan.name}</h3>
-              <p className="mt-6 text-[#191C1E]">
-                <span className="text-4xl font-extrabold">{plan.price}</span>
-                {plan.suffix ? <span className="ml-1 text-sm text-[#757588]">{plan.suffix}</span> : null}
-              </p>
-              <ul className="mt-7 space-y-3">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex gap-2 text-sm text-[#454557]">
-                    <Check className="h-5 w-5 shrink-0 text-[#1117E8]" aria-hidden="true" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-              <ButtonLink href="#" variant={plan.highlighted ? "primary" : "secondary"} className="mt-10 w-full">
-                {plan.cta}
-              </ButtonLink>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function FAQSection() {
   return (
     <section className="bg-white py-16 md:py-20">
@@ -600,7 +529,6 @@ function Footer() {
           title="Product"
           links={[
             ["Features", "/product"],
-            ["Pricing", "/pricing"],
             ["For Consultants", "/company#contact"],
           ]}
         />
@@ -660,7 +588,6 @@ export function LandingPage() {
         <WorkflowSection />
         <FeatureGridSection />
         <ConsultantsSection />
-        <PricingSection />
         <FAQSection />
         <ComplianceNotice />
         <FinalCTA />
