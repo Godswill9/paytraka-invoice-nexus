@@ -24,6 +24,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { resetOnboardingState } from "@/lib/onboarding-store";
+import { logout as apiLogout } from "@/lib/api/auth";
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: Home, matches: ["/dashboard"] },
@@ -51,9 +52,10 @@ function isActiveRoute(pathname: string, href: string, matches?: string[]) {
 export function Sidebar({ open, setOpen }: { open: boolean; setOpen: (open: boolean) => void }) {
   const pathname = usePathname();
   const router = useRouter();
-  const logout = () => {
+  const logout = async () => {
     resetOnboardingState();
     window.localStorage.removeItem("paytraka_user");
+    await apiLogout();
     router.push("/login");
   };
 
