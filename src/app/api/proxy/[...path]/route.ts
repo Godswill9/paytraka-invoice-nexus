@@ -1,8 +1,13 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+import http from "node:http";
+import https from "node:https";
 import { API_BASE_URL } from "@/lib/api/client";
 
 const ACCESS_COOKIE = "paytraka_access_token";
+const UPSTREAM_UNAVAILABLE_MESSAGE = "We could not reach PayTraka right now. Check your connection and try again.";
+
+export const runtime = "nodejs";
 
 type RouteContext = {
   params: Promise<{ path: string[] }>;
@@ -49,8 +54,12 @@ async function proxyRequest(request: NextRequest, context: RouteContext) {
       body,
       cache: "no-store",
     });
-  } catch {
-    return NextResponse.json({ success: false, message: "We could not reach PayTraka right now. Check your connection and try again." }, { status: 502 });
+  } catch (error) {
+    try {
+      upstreamResponse = await retryKnownPaytrakaTlsIssue(error, upstreamUrl, request.method, headers, body);
+    } catch {
+      return NextResponse.json({ success: false, message: UPSTREAM_UNAVAILABLE_MESSAGE }, { status: 502 });
+    }
   }
 
   const responseContentType = upstreamResponse.headers.get("content-type") ?? "application/json";
@@ -78,4 +87,44 @@ export function PATCH(request: NextRequest, context: RouteContext) {
 
 export function DELETE(request: NextRequest, context: RouteContext) {
   return proxyRequest(request, context);
+}
+
+function shouldRetryKnownPaytrakaTlsIssue(error: unknown, upstreamUrl: URL, body: BodyInit | undefined) {
+  if (upstreamUrl.protocol !== "https:" || upstreamUrl.hostname !== "paytraka-api.domain-plusltd.com") return false;
+  if (typeof body !== "undefined" && typeof body !== "string") return false;
+  const text = error instanceof Error ? `${error.message} ${(error as Error & { cause?: unknown }).cause ?? ""}` : String(error);
+  return /cert|certificate|TLS|ERR_TLS_CERT_ALTNAME_INVALID|fetch failed/i.test(text);
+}
+
+async function retryKnownPaytrakaTlsIssue(error: unknown, upstreamUrl: URL, method: string, headers: Headers, body: BodyInit | undefined) {
+  if (!shouldRetryKnownPaytrakaTlsIssue(error, upstreamUrl, body)) throw error;
+  return requestWithNode(upstreamUrl, method, headers, body as string | undefined, true);
+}
+
+function requestWithNode(upstreamUrl: URL, method: string, headers: Headers, body: string | undefined, allowInvalidTls: boolean) {
+  return new Promise<Response>((resolve, reject) => {
+    const transport = upstreamUrl.protocol === "https:" ? https : http;
+    const request = transport.request({
+      protocol: upstreamUrl.protocol,
+      hostname: upstreamUrl.hostname,
+      port: upstreamUrl.port,
+      path: `${upstreamUrl.pathname}${upstreamUrl.search}`,
+      method,
+      headers: Object.fromEntries(headers.entries()),
+      rejectUnauthorized: !allowInvalidTls,
+    }, (response) => {
+      const chunks: Buffer[] = [];
+      response.on("data", (chunk) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
+      response.on("end", () => {
+        resolve(new Response(Buffer.concat(chunks), {
+          status: response.statusCode ?? 502,
+          headers: response.headers as HeadersInit,
+        }));
+      });
+    });
+
+    request.on("error", reject);
+    if (body) request.write(body);
+    request.end();
+  });
 }

@@ -151,12 +151,13 @@ describe("/api/proxy/[...path] route", () => {
   });
 
   it("returns a deterministic gateway error when the upstream API is unavailable", async () => {
-    cookieValues.set("paytraka_access_token", "access-token");
-    vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("TLS failure"));
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("ENOTFOUND"));
 
-    const response = await DELETE(request("http://localhost/api/proxy/customers/customer-1", {
-      method: "DELETE",
-    }), context(["customers", "customer-1"]));
+    const response = await POST(request("http://localhost/api/proxy/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "ada@example.com" }),
+    }), context(["auth", "register"]));
 
     expect(response.status).toBe(502);
     await expect(response.json()).resolves.toEqual({ success: false, message: "We could not reach PayTraka right now. Check your connection and try again." });

@@ -155,7 +155,7 @@ The current mock frontend does not require environment variables.
 The PayTraka backend URL is used only by server-side route handlers. Do not expose it with `NEXT_PUBLIC_`; browser requests should go through the same-origin `/api/proxy` route to avoid mixed-content and CORS issues.
 
 ```bash
-PAYTRAKA_API_BASE_URL=http://paytraka-api.domain-plusltd.com/api
+PAYTRAKA_API_BASE_URL=https://paytraka-api.domain-plusltd.com/api
 ```
 
 Do not expose secrets with `NEXT_PUBLIC_`.
