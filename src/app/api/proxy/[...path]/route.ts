@@ -12,20 +12,22 @@ async function proxyRequest(request: NextRequest, context: RouteContext) {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get(ACCESS_COOKIE)?.value;
 
-  if (!accessToken) {
-    return NextResponse.json({ success: false, message: "Authentication required" }, { status: 401 });
-  }
-
   const { path } = await context.params;
   if (!path?.length) {
     return NextResponse.json({ success: false, message: "API path is required" }, { status: 400 });
+  }
+
+  const isPublicAuthPath = path[0] === "auth" && ["login", "register", "verify-otp"].includes(path[1] ?? "");
+
+  if (!accessToken && !isPublicAuthPath) {
+    return NextResponse.json({ success: false, message: "Authentication required" }, { status: 401 });
   }
 
   const upstreamUrl = new URL(`${API_BASE_URL}/${path.join("/")}`);
   request.nextUrl.searchParams.forEach((value, key) => upstreamUrl.searchParams.set(key, value));
 
   const headers = new Headers();
-  headers.set("Authorization", `Bearer ${accessToken}`);
+  if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
 
   const contentType = request.headers.get("content-type");
   let body: BodyInit | undefined;
@@ -48,7 +50,7 @@ async function proxyRequest(request: NextRequest, context: RouteContext) {
       cache: "no-store",
     });
   } catch {
-    return NextResponse.json({ success: false, message: "Unable to reach PayTraka API" }, { status: 502 });
+    return NextResponse.json({ success: false, message: "We could not reach PayTraka right now. Check your connection and try again." }, { status: 502 });
   }
 
   const responseContentType = upstreamResponse.headers.get("content-type") ?? "application/json";

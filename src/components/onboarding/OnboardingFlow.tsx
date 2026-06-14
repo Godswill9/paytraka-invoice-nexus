@@ -43,6 +43,7 @@ import {
 import { getApiErrorMessage } from "@/lib/api/client";
 import { getMe, login, register, verifyOtp } from "@/lib/api/auth";
 import { submitKyc } from "@/lib/api/companies";
+import { getAuthPageRedirect, getAuthSuccessRedirect } from "@/lib/auth-flow";
 
 type PageKind = "signup" | "verify" | "business" | "tax" | "bank" | "preferences" | "review" | "dashboard";
 
@@ -287,9 +288,23 @@ function useOnboardingGuard(kind: "auth" | "verify" | "onboarding" | "dashboard"
       review: "/onboarding/review",
     } as const;
     const stepOrder = ["business-details", "tax-profile", "bank-details", "preferences", "review"] as const;
-    if (kind === "auth" && state.completed) {
-      router.replace("/dashboard");
-      return;
+    if (kind === "auth") {
+      if (!state.completed) return;
+      let cancelled = false;
+      fetch("/api/auth/session", { cache: "no-store" })
+        .then((response) => response.json())
+        .then((session) => {
+          if (cancelled) return;
+          const redirect = getAuthPageRedirect(state, session);
+          if (redirect) router.replace(redirect);
+        })
+        .catch(() => {
+          // Stay on login/signup when the session check fails. Stale onboarding
+          // state must not bounce users away from auth pages.
+        });
+      return () => {
+        cancelled = true;
+      };
     }
     if (kind === "verify" && !state.signup.workEmail) {
       router.replace("/signup");
@@ -465,7 +480,7 @@ export function LoginPage() {
           contactPerson: `${user.first_name ?? "Admin"} ${user.last_name ?? "User"}`.trim(),
         },
       });
-      router.push(user.kyc_complete ? "/dashboard" : "/onboarding/business-details");
+      router.push(getAuthSuccessRedirect(user));
     } catch (requestError) {
       setError(getApiErrorMessage(requestError, "Unable to sign in."));
     } finally {
@@ -541,7 +556,7 @@ export function VerifyEmailPage() {
     try {
       const response = await verifyOtp(state.signup.userId, otp);
       save({ signup: { emailVerified: true }, currentStep: response.data.user.kyc_complete ? "complete" : "business-details", completed: Boolean(response.data.user.kyc_complete) });
-      router.push(response.data.user.kyc_complete ? "/dashboard" : "/onboarding/business-details");
+      router.push(getAuthSuccessRedirect(response.data.user));
     } catch (requestError) {
       setError(getApiErrorMessage(requestError, "Unable to verify OTP."));
     } finally {

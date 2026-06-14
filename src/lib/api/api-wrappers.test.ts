@@ -69,6 +69,37 @@ describe("auth API wrapper", () => {
     expect(clientMocks.publicApiClient.post).toHaveBeenCalledWith("/auth/register", payload);
   });
 
+  it("propagates duplicate-account signup failures without creating a session", async () => {
+    clientMocks.publicApiClient.post.mockRejectedValue(new Error("Account already exists"));
+
+    await expect(authApi.register({
+      first_name: "Ada",
+      last_name: "Lovelace",
+      email: "ada@example.com",
+      password: "Test@1234",
+      phone: "08012345678",
+      company_name: "Ada Ltd",
+    })).rejects.toThrow("Account already exists");
+
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("successfully signs up by registering without creating a token session before OTP", async () => {
+    const registerResponse = apiResponse({ user_id: "user-1" });
+    clientMocks.publicApiClient.post.mockResolvedValue(axiosResponse(registerResponse));
+
+    await expect(authApi.register({
+      first_name: "Grace",
+      last_name: "Hopper",
+      email: "grace@example.com",
+      password: "Test@1234",
+      phone: "08012345678",
+      company_name: "Grace Ltd",
+    })).resolves.toEqual(registerResponse);
+
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
   it("verifies OTP and stores returned tokens in the session route", async () => {
     const tokens = { accessToken: "access-token", refreshToken: "refresh-token", user };
     clientMocks.publicApiClient.post.mockResolvedValue(axiosResponse(apiResponse(tokens)));
