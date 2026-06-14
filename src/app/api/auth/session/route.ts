@@ -19,12 +19,22 @@ export async function GET() {
 
   return NextResponse.json({
     authenticated: Boolean(cookieStore.get(ACCESS_COOKIE)?.value),
-    user: user ? JSON.parse(user) : null,
+    user: safeParseUser(user),
   });
 }
 
 export async function POST(request: NextRequest) {
-  const payload = (await request.json()) as AuthTokens;
+  let payload: AuthTokens;
+  try {
+    payload = (await request.json()) as AuthTokens;
+  } catch {
+    return NextResponse.json({ success: false, message: "Malformed session payload" }, { status: 400 });
+  }
+
+  if (!payload?.accessToken || !payload?.refreshToken || !payload?.user) {
+    return NextResponse.json({ success: false, message: "Session tokens and user are required" }, { status: 400 });
+  }
+
   const response = NextResponse.json({ success: true, user: payload.user });
 
   response.cookies.set(ACCESS_COOKIE, payload.accessToken, { ...cookieOptions, maxAge: 60 * 60 });
@@ -32,6 +42,15 @@ export async function POST(request: NextRequest) {
   response.cookies.set(USER_COOKIE, JSON.stringify(payload.user), { ...cookieOptions, maxAge: 60 * 60 * 24 * 30 });
 
   return response;
+}
+
+function safeParseUser(value?: string) {
+  if (!value) return null;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
 }
 
 export async function DELETE() {

@@ -17,6 +17,10 @@ async function proxyRequest(request: NextRequest, context: RouteContext) {
   }
 
   const { path } = await context.params;
+  if (!path?.length) {
+    return NextResponse.json({ success: false, message: "API path is required" }, { status: 400 });
+  }
+
   const upstreamUrl = new URL(`${API_BASE_URL}/${path.join("/")}`);
   request.nextUrl.searchParams.forEach((value, key) => upstreamUrl.searchParams.set(key, value));
 
@@ -35,12 +39,17 @@ async function proxyRequest(request: NextRequest, context: RouteContext) {
     }
   }
 
-  const upstreamResponse = await fetch(upstreamUrl, {
-    method: request.method,
-    headers,
-    body,
-    cache: "no-store",
-  });
+  let upstreamResponse: Response;
+  try {
+    upstreamResponse = await fetch(upstreamUrl, {
+      method: request.method,
+      headers,
+      body,
+      cache: "no-store",
+    });
+  } catch {
+    return NextResponse.json({ success: false, message: "Unable to reach PayTraka API" }, { status: 502 });
+  }
 
   const responseContentType = upstreamResponse.headers.get("content-type") ?? "application/json";
   const responseBody = await upstreamResponse.arrayBuffer();
