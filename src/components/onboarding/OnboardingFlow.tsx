@@ -44,6 +44,7 @@ import { getApiErrorMessage } from "@/lib/api/client";
 import { getMe, getRegisteredUserId, login, register, resendOtp, verifyOtp } from "@/lib/api/auth";
 import { submitKyc } from "@/lib/api/companies";
 import { getAuthPageRedirect, getAuthSuccessRedirect } from "@/lib/auth-flow";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 type PageKind = "signup" | "verify" | "business" | "tax" | "bank" | "preferences" | "review" | "dashboard";
 
@@ -168,7 +169,7 @@ function AuthOnboardingLayout({ kind, children }: { kind: PageKind; children: Re
   const config = sidebarConfigs[kind];
 
   return (
-    <div className="min-h-screen bg-[#F5F6FA] lg:grid lg:h-screen lg:grid-cols-[42%_58%] lg:overflow-hidden">
+    <div className="onboarding-theme min-h-screen bg-[#F5F6FA] lg:grid lg:h-screen lg:grid-cols-[42%_58%] lg:overflow-hidden">
       <aside className="relative hidden overflow-hidden bg-[#0001B1] px-10 py-9 text-white lg:flex lg:h-screen lg:flex-col">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.18),transparent_30%),radial-gradient(circle_at_80%_70%,rgba(17,23,232,0.9),transparent_35%)]" />
         <div className="relative z-10 my-auto max-w-xl">
@@ -204,11 +205,14 @@ function AuthOnboardingLayout({ kind, children }: { kind: PageKind; children: Re
       <main className="min-h-screen px-5 py-8 md:px-10 lg:h-screen lg:min-h-0 lg:overflow-y-auto lg:px-10">
         <div className="mx-auto mb-4 flex max-w-6xl items-center justify-between">
           <Link href="/" aria-label="Go to PayTraka landing page" className="inline-flex focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1117E8]">
-            <Image src="/paytraka_logo/paytraka-logo-transparent.png" alt="PayTraka" width={168} height={48} className="h-9 w-auto object-contain" priority />
+            <Image src="/paytraka_logo/paytraka-logo-transparent.png" alt="PayTraka" width={168} height={48} className="h-8 w-auto max-w-[132px] object-contain sm:h-9 sm:max-w-none" priority />
           </Link>
-          <Link href="/" className="text-sm font-bold text-[#0001B1] lg:hidden">Home</Link>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <Link href="/" className="hidden text-sm font-bold text-[#0001B1] sm:inline lg:hidden">Home</Link>
+          </div>
         </div>
-        {children}
+        <div className="step-shell">{children}</div>
       </main>
     </div>
   );
@@ -225,7 +229,7 @@ function ProgressHeader({ step, title, percent }: { step: string; title: string;
         <p className="hidden text-lg font-bold text-[#454557] sm:block">{percent}% Complete</p>
       </div>
       <div className="mt-5 h-2 overflow-hidden rounded-full bg-[#DFE3E8]">
-        <div className="h-full rounded-full bg-[#1117E8] transition-all duration-500" style={{ width: `${percent}%` }} />
+        <div className="progress-glow h-full rounded-full bg-[#1117E8] transition-all duration-500 ease-out" style={{ width: `${percent}%` }} />
       </div>
     </div>
   );
@@ -241,7 +245,7 @@ function Field({ label, error, children }: { label: string; error?: string; chil
   );
 }
 
-const inputClass = "h-12 w-full rounded-xl border border-[#C5C4DA] bg-white px-4 text-base text-[#191C1E] outline-none transition placeholder:text-[#9CA0AA] focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]";
+const inputClass = "h-12 w-full rounded-xl border border-[#C5C4DA] bg-white px-4 text-base text-[#191C1E] outline-none transition placeholder:text-[#9CA0AA] hover:border-[#1117E8]/60 focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]";
 const selectClass = `${inputClass} appearance-none pr-10`;
 
 function StepActions({ backHref, nextLabel = "Continue", disabled = false }: { backHref: string; nextLabel?: string; disabled?: boolean }) {
@@ -406,7 +410,7 @@ export function SignupPage() {
       <form onSubmit={submit} className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-2xl flex-col justify-center py-5">
         <h1 className="text-3xl font-extrabold text-[#191C1E] md:text-4xl">Create your PayTraka workspace</h1>
         <p className="mt-3 text-base leading-7 text-[#454557]">Start managing invoices, payments, customers, reports, and compliance from one secure business dashboard.</p>
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
+        <div className="stagger-children mt-6 grid gap-4 md:grid-cols-2">
           {signupFields.map(({ name, label, placeholder, icon: Icon }) => (
             <Field key={name} label={label} error={errors[name]}>
               <div className="relative">
@@ -596,7 +600,7 @@ export function VerifyEmailPage() {
         <span className="flex h-20 w-20 items-center justify-center rounded-2xl bg-[#DADEFD] text-[#1117E8]"><Mail size={36} /></span>
         <h1 className="mt-8 text-4xl font-extrabold text-[#191C1E]">Verify your email</h1>
         <p className="mt-4 max-w-2xl text-lg leading-7 text-[#454557]">We&apos;ve sent a 6-digit verification code to {state.signup.workEmail || "your email"}. Enter it below to continue.</p>
-        <div className="mt-10 grid grid-cols-6 gap-3 md:gap-5">
+        <div className="stagger-children mt-10 grid grid-cols-6 gap-3 md:gap-5">
           {code.map((value, index) => (
             <input
               key={index}
@@ -665,7 +669,7 @@ export function BusinessDetailsPage() {
     <AuthOnboardingLayout kind="business">
       <form onSubmit={submit} className="mx-auto max-w-5xl py-8">
         <ProgressHeader step="STEP 1 OF 5" title="Business Details" percent={20} />
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="stagger-children grid gap-6 md:grid-cols-2">
           <Field label="Business Name" error={errors.businessName}><input value={form.businessName} onChange={(e) => setForm({ ...form, businessName: e.target.value })} className={inputClass} placeholder="Legal registered name" /></Field>
           <Field label="Trading Name (Optional)"><input value={form.tradingName} onChange={(e) => setForm({ ...form, tradingName: e.target.value })} className={inputClass} placeholder="As seen by customers" /></Field>
           <Field label="Business Type" error={errors.businessType}><SelectField value={form.businessType} onChange={(businessType) => setForm({ ...form, businessType })} options={["Limited Liability Company", "Sole Proprietorship", "Partnership", "NGO", "Government Agency"]} placeholder="Select business type" /></Field>
@@ -710,7 +714,7 @@ export function TaxProfilePage() {
     <AuthOnboardingLayout kind="tax">
       <form onSubmit={submit} className="mx-auto max-w-5xl py-8">
         <ProgressHeader step="STEP 2 OF 5" title="Tax & Compliance Profile" percent={40} />
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="stagger-children grid gap-6 md:grid-cols-2">
           <Field label="TIN" error={errors.tin}><input value={form.tin} onChange={(e) => setForm({ ...form, tin: e.target.value })} className={inputClass} placeholder="Tax Identification Number" /></Field>
           <Field label="CAC/RC Number" error={errors.cacNumber}><input value={form.cacNumber} onChange={(e) => setForm({ ...form, cacNumber: e.target.value })} className={inputClass} placeholder="RC 0000000" /></Field>
           <Field label="VAT Registration Status" error={errors.vatStatus}><SelectField value={form.vatStatus} onChange={(vatStatus) => setForm({ ...form, vatStatus })} options={["Registered", "Not Registered", "Not Sure"]} placeholder="Select status" /></Field>
@@ -774,7 +778,7 @@ export function BankDetailsPage() {
       <form onSubmit={submit} className="mx-auto max-w-5xl py-10">
         <ProgressHeader step="STEP 3 OF 5" title="Bank details" percent={60} />
         <p className="-mt-6 mb-8 max-w-4xl text-lg leading-7 text-[#454557]">Configure where your payments will be received. This information will be used for automated invoicing and tax compliance.</p>
-        <div className="mt-8 grid gap-5 md:grid-cols-2">
+        <div className="stagger-children mt-8 grid gap-5 md:grid-cols-2">
           <Field label="Bank Name" error={errors.bankName}><SelectField value={form.bankName} onChange={(bankName) => setForm({ ...form, bankName })} options={banks} placeholder="Select Bank" /></Field>
           <Field label="Account Number" error={errors.accountNumber}><input value={form.accountNumber} onChange={(e) => setForm({ ...form, accountNumber: e.target.value.replace(/\D/g, "").slice(0, 10) })} className={inputClass} placeholder="10-digit Number" /></Field>
           <div className="md:col-span-2"><Field label="Account Name" error={errors.accountName}><input value={form.accountName} onChange={(e) => setForm({ ...form, accountName: e.target.value })} className={inputClass} placeholder="Full legal business name" /></Field></div>
@@ -840,7 +844,7 @@ export function PreferencesPage() {
           </section>
           <section>
             <h2 className="text-2xl font-bold text-[#191C1E]">Invoice Template</h2>
-            <div className="mt-8 grid max-w-sm grid-cols-2 gap-4">
+            <div className="stagger-children mt-8 grid max-w-sm grid-cols-2 gap-4">
               {templates.map((template) => (
                 <button key={template} type="button" onClick={() => setForm({ ...form, invoiceTemplate: template })} className={`rounded-xl border p-3 text-left font-bold transition ${form.invoiceTemplate === template ? "border-[#1117E8] bg-[#EEF1FF] text-[#0001B1] ring-2 ring-[#1117E8]" : "border-[#C5C4DA] bg-white text-[#191C1E]"}`}>
                   <span className="mb-3 flex h-20 items-center justify-center rounded-lg border border-dashed border-[#C5C4DA] bg-[#F7F9FB]">
@@ -919,9 +923,9 @@ export function ReviewPage() {
     <AuthOnboardingLayout kind="review">
       <form onSubmit={submit} className="mx-auto max-w-6xl py-8">
         <ProgressHeader step="STEP 5 OF 5" title="Review your setup" percent={100} />
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="stagger-children grid gap-5 md:grid-cols-2">
         {cards.map(([title, href, rows]) => (
-            <article key={title as string} className="rounded-2xl border border-[#C5C4DA] bg-white p-6">
+            <article key={title as string} className="interactive-card rounded-2xl border border-[#C5C4DA] bg-white p-6">
               <div className="flex items-center justify-between gap-4">
                 <h2 className="text-xl font-bold text-[#191C1E]">{title as string}</h2>
                 <Link href={href as string} className="font-bold text-[#0001B1]">Edit</Link>

@@ -14,7 +14,6 @@ import {
   Mail,
   Menu,
   MapPin,
-  Moon,
   Phone,
   Search,
   Send,
@@ -24,6 +23,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 type PageKey = "home" | "product" | "solutions" | "resources" | "company";
 
@@ -41,7 +41,7 @@ function cx(...classes: Array<string | false | undefined>) {
 
 export function SiteNavbar({ active }: { active: PageKey }) {
   return (
-    <header className="sticky top-0 z-50 border-b border-[#C5C4DA]/50 bg-white/95 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-[#C5C4DA]/50 bg-white/95 backdrop-blur-xl dark:bg-[#0B1020]">
       <nav className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-3 px-4 md:px-8" aria-label="Main navigation">
         <Link href="/" className="flex items-center gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1117E8]">
           <Image src="/paytraka_logo/paytraka-logo-navbar.png" alt="PayTraka" width={170} height={48} className="h-9 w-auto object-contain md:h-11" priority />
@@ -62,9 +62,7 @@ export function SiteNavbar({ active }: { active: PageKey }) {
           ))}
         </div>
         <div className="flex items-center gap-3">
-          <button className="hidden h-10 w-10 items-center justify-center rounded-lg text-[#454557] transition hover:bg-[#F7F9FB] hover:text-[#0001B1] sm:inline-flex" type="button" aria-label="Toggle theme">
-            <Moon size={20} aria-hidden="true" />
-          </button>
+          <ThemeToggle className="hidden sm:inline-flex" />
           <a href="/login" className="hidden min-h-10 items-center rounded-lg border border-[#C5C4DA] bg-white px-5 text-sm font-bold text-[#0001B1] transition hover:border-[#1117E8] sm:inline-flex">
             Sign in
           </a>
@@ -169,10 +167,10 @@ export function ProductPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F7F9FB]">
+    <div className="public-theme min-h-screen bg-[#F7F9FB]">
       <SiteNavbar active="product" />
       <main>
-        <section className="px-5 py-24 text-center md:px-8">
+        <section className="soft-enter px-5 py-24 text-center md:px-8">
           <h1 className="mx-auto max-w-4xl text-4xl font-extrabold leading-tight text-[#191C1E] md:text-6xl">
             Comprehensive Tax Compliance Features
           </h1>
@@ -180,9 +178,9 @@ export function ProductPage() {
             PayTraka streamlines your entire invoicing and compliance workflow. From business onboarding to FIRS/NRS validation, everything is designed for accuracy, speed, and institutional trust.
           </p>
         </section>
-        <section className="mx-auto grid max-w-7xl gap-6 px-5 pb-24 md:grid-cols-3 md:px-8">
+        <section className="stagger-children mx-auto grid max-w-7xl gap-6 px-5 pb-24 md:grid-cols-3 md:px-8">
           {cards.map(({ icon, title, body, meta }) => (
-            <article key={title} className="rounded-xl border border-[#D7DEE8] bg-white p-7 shadow-sm">
+            <article key={title} className="interactive-card rounded-xl border border-[#D7DEE8] bg-white p-7 shadow-sm">
               <IconBadge icon={icon} />
               <h2 className="mt-8 text-2xl font-bold text-[#191C1E]">{title}</h2>
               <p className="mt-4 text-base leading-7 text-[#454557]">{body}</p>
@@ -192,7 +190,7 @@ export function ProductPage() {
               </p>
             </article>
           ))}
-          <article className="rounded-xl border border-[#D7DEE8] bg-white p-7 shadow-sm md:col-span-2">
+          <article className="interactive-card rounded-xl border border-[#D7DEE8] bg-white p-7 shadow-sm md:col-span-2">
             <div className="grid min-w-0 gap-8 md:grid-cols-[0.9fr_minmax(0,1.1fr)] md:items-center">
               <div>
                 <IconBadge icon={FileText} />
@@ -215,7 +213,7 @@ export function ProductPage() {
               </div>
             </div>
           </article>
-          <article className="rounded-xl bg-[#0001B1] p-7 text-white shadow-[0_18px_45px_rgba(17,23,232,0.24)]">
+          <article className="interactive-card rounded-xl bg-[#0001B1] p-7 text-white shadow-[0_18px_45px_rgba(17,23,232,0.24)]">
             <IconBadge icon={FileCheck2} dark />
             <h2 className="mt-8 text-2xl font-bold">Invoice Validation</h2>
             <p className="mt-5 text-base leading-8 text-white/90">
@@ -223,7 +221,7 @@ export function ProductPage() {
             </p>
             <p className="mt-8 inline-flex rounded bg-white/15 px-3 py-1 text-sm font-semibold">Pre-check Active</p>
           </article>
-          <article className="rounded-xl border border-[#D7DEE8] bg-white p-7 shadow-sm md:col-span-2">
+          <article className="interactive-card rounded-xl border border-[#D7DEE8] bg-white p-7 shadow-sm md:col-span-2">
             <div className="grid min-w-0 gap-8 md:grid-cols-[0.9fr_minmax(0,1.1fr)] md:items-center">
               <div className="rounded-xl border border-[#D7DEE8] bg-[#F7F9FB] p-5">
                 {["Invoice Generated", "Submitting to FIRS", "NRS Validated"].map((step, index) => (
@@ -242,7 +240,7 @@ export function ProductPage() {
               </div>
             </div>
           </article>
-          <article className="rounded-xl border border-[#D7DEE8] bg-white p-7 shadow-sm">
+          <article className="interactive-card rounded-xl border border-[#D7DEE8] bg-white p-7 shadow-sm">
             <IconBadge icon={BarChart3} />
             <h2 className="mt-8 text-2xl font-bold text-[#191C1E]">Reports & Audit Trail</h2>
             <p className="mt-4 text-base leading-7 text-[#454557]">
@@ -266,10 +264,10 @@ export function SolutionsPage() {
   ] as const;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="public-theme min-h-screen bg-white">
       <SiteNavbar active="solutions" />
       <main>
-        <section className="px-5 py-20 text-center md:px-8">
+        <section className="soft-enter px-5 py-20 text-center md:px-8">
           <span className="inline-flex rounded-full border border-[#C5C4DA] bg-[#EEF1FF] px-4 py-2 text-sm font-bold text-[#0001B1]">
             FIRS Compliant Infrastructure
           </span>
@@ -286,9 +284,9 @@ export function SolutionsPage() {
             <p className="hidden font-bold text-[#66728A] sm:block">Standard Operating Procedure</p>
           </div>
           <div className="mt-8 rounded-xl border border-[#D7DEE8] bg-white p-8">
-            <div className="grid gap-8 md:grid-cols-4">
+            <div className="stagger-children grid gap-8 md:grid-cols-4">
               {pipeline.map(([title, body, Icon, active]) => (
-                <article key={title} className="relative text-center">
+                <article key={title} className="interactive-card relative rounded-xl p-3 text-center">
                   <IconBadge icon={Icon} />
                   <h3 className="mt-5 text-lg font-bold text-[#121B3A]">{title}</h3>
                   <p className="mt-2 text-sm font-medium leading-6 text-[#66728A]">{body}</p>
@@ -298,7 +296,7 @@ export function SolutionsPage() {
             </div>
           </div>
           <div className="mt-20 grid gap-8 lg:grid-cols-2">
-            <article className="rounded-xl border border-[#D7DEE8] bg-white p-8">
+            <article className="interactive-card rounded-xl border border-[#D7DEE8] bg-white p-8">
               <IconBadge icon={FileSearch} />
               <h2 className="mt-8 text-3xl font-bold text-[#121B3A]">Invoice Validation Pathway</h2>
               <p className="mt-5 text-lg leading-8 text-[#66728A]">
@@ -313,7 +311,7 @@ export function SolutionsPage() {
                 ))}
               </div>
             </article>
-            <article className="rounded-xl bg-[#12172F] p-8 text-white">
+            <article className="interactive-card rounded-xl bg-[#12172F] p-8 text-white">
               <IconBadge icon={CloudUpload} dark />
               <h2 className="mt-8 text-3xl font-bold">FIRS/NRS Submission Pathway</h2>
               <p className="mt-5 text-lg leading-8 text-white/78">
@@ -337,10 +335,10 @@ export function SolutionsPage() {
 
 export function ResourcesPage() {
   return (
-    <div className="min-h-screen bg-[#F7F9FB]">
+    <div className="public-theme min-h-screen bg-[#F7F9FB]">
       <SiteNavbar active="resources" />
       <main>
-        <section className="border-b border-[#D7DEE8] bg-[#F4F6FF] px-5 py-20 text-center md:px-8 md:py-24">
+        <section className="soft-enter border-b border-[#D7DEE8] bg-[#F4F6FF] px-5 py-20 text-center md:px-8 md:py-24">
           <h1 className="text-4xl font-extrabold text-[#0001B1] md:text-6xl">Resources & Support</h1>
           <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-[#454557] md:text-xl">
             Everything you need to master PayTraka and ensure complete FIRS/NRS compliance for your business.
@@ -355,8 +353,8 @@ export function ResourcesPage() {
           <h2 className="flex items-center gap-4 text-2xl font-bold text-[#191C1E] sm:text-3xl">
             <ShieldCheck className="text-[#1294D8]" aria-hidden="true" /> FIRS/NRS Readiness Guide
           </h2>
-          <div className="mt-10 grid gap-6 lg:grid-cols-[2fr_1fr]">
-            <article className="rounded-xl border border-[#D7DEE8] bg-white p-7">
+          <div className="stagger-children mt-10 grid gap-6 lg:grid-cols-[2fr_1fr]">
+            <article className="interactive-card rounded-xl border border-[#D7DEE8] bg-white p-7">
               <span className="rounded-full bg-[#EEF1FF] px-4 py-2 text-sm font-bold text-[#0001B1]">Complete Guide</span>
                 <h3 className="mt-7 text-2xl font-bold sm:text-3xl">Transitioning to e-Invoicing</h3>
               <p className="mt-4 text-lg leading-8 text-[#454557]">
@@ -364,19 +362,19 @@ export function ResourcesPage() {
               </p>
               <a href="#" className="mt-7 inline-flex items-center gap-2 font-bold text-[#0001B1]">Read Full Guide <ArrowRight size={16} aria-hidden="true" /></a>
             </article>
-            <article className="rounded-xl border border-[#D7DEE8] bg-white p-7">
+            <article className="interactive-card rounded-xl border border-[#D7DEE8] bg-white p-7">
               <IconBadge icon={ShieldCheck} />
               <h3 className="mt-6 text-xl font-bold">Compliance Checklist</h3>
               <p className="mt-4 text-base leading-7 text-[#454557]">Ensure your business meets all mandatory FIRS requirements.</p>
               <a href="#" className="mt-6 inline-block font-bold text-[#0001B1]">Download PDF</a>
             </article>
-            <article className="rounded-xl border border-[#D7DEE8] bg-white p-7">
+            <article className="interactive-card rounded-xl border border-[#D7DEE8] bg-white p-7">
               <IconBadge icon={Gauge} />
               <h3 className="mt-6 text-xl font-bold">Integration Specs</h3>
               <p className="mt-4 text-base leading-7 text-[#454557]">Technical documentation for connecting your existing ERP.</p>
               <a href="/solutions" className="mt-6 inline-block font-bold text-[#0001B1]">View Docs</a>
             </article>
-            <article className="flex flex-col justify-between gap-6 rounded-xl border border-[#D7DEE8] bg-white p-7 md:flex-row md:items-center">
+            <article className="interactive-card flex flex-col justify-between gap-6 rounded-xl border border-[#D7DEE8] bg-white p-7 md:flex-row md:items-center">
               <div>
                 <h3 className="text-xl font-bold">Upcoming Webinar: Navigating NRS Updates</h3>
                 <p className="mt-3 text-base text-[#454557]">Join our tax experts on Oct 15th for a live Q&A.</p>
@@ -388,14 +386,14 @@ export function ResourcesPage() {
         <section className="bg-[#EEF2F6] px-5 py-20 md:px-8">
           <div className="mx-auto max-w-7xl">
             <h2 className="text-3xl font-bold">Help Center</h2>
-            <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="stagger-children mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 [UsersRound, "Account Setup", "Manage profile, security, and team access."],
                 [FileText, "Creating Invoices", "Templates, line items, and tax calculations."],
                 [Send, "Submission & Validation", "Understanding status codes and FIRS responses."],
                 [BarChart3, "Reports & Analytics", "Exporting data and reading compliance summaries."],
               ].map(([Icon, title, body]) => (
-                <article key={title as string} className="rounded-xl border border-[#D7DEE8] bg-white p-7">
+                <article key={title as string} className="interactive-card rounded-xl border border-[#D7DEE8] bg-white p-7">
                   <IconBadge icon={Icon as LucideIcon} />
                   <h3 className="mt-6 font-bold">{title as string}</h3>
                   <p className="mt-4 text-base leading-7 text-[#454557]">{body as string}</p>

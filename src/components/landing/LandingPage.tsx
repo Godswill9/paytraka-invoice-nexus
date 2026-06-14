@@ -24,6 +24,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -144,7 +145,7 @@ function SectionHeader({
 
 function Navbar() {
   return (
-    <header className="sticky top-0 z-50 border-b border-[#C5C4DA]/60 bg-white/90 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-[#C5C4DA]/60 bg-white/90 backdrop-blur-xl dark:bg-[#0B1020]">
       <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-3 px-4 md:px-8" aria-label="Main navigation">
         <Link href="/" className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1117E8]">
           <Image src="/paytraka_logo/paytraka-logo-navbar.png" alt="PayTraka" width={170} height={48} className="h-9 w-auto object-contain md:h-11" priority />
@@ -157,6 +158,7 @@ function Navbar() {
           ))}
         </div>
         <div className="flex items-center gap-3">
+          <ThemeToggle className="hidden sm:inline-flex" />
           <a href="/login" className="hidden text-sm font-semibold text-[#191C1E] transition hover:text-[#0001B1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1117E8] sm:inline-flex">
             Sign in
           </a>
@@ -271,7 +273,7 @@ function InvoiceMockup() {
 
 function HeroSection() {
   return (
-    <section className="overflow-hidden border-b border-[#D7DEE8] bg-[radial-gradient(circle_at_78%_18%,rgba(218,222,253,0.9)_0,rgba(247,249,251,0)_32%),linear-gradient(180deg,#F7F9FB_0%,#FFFFFF_100%)]">
+    <section className="overflow-hidden border-b border-[#D7DEE8] bg-[radial-gradient(circle_at_78%_18%,rgba(218,222,253,0.9)_0,rgba(247,249,251,0)_32%),linear-gradient(180deg,#F7F9FB_0%,#FFFFFF_100%)] dark:bg-[radial-gradient(circle_at_78%_18%,rgba(63,92,255,0.22)_0,rgba(11,16,32,0)_32%),linear-gradient(180deg,#080D18_0%,#0B1020_100%)]">
       <div className="mx-auto grid min-h-[calc(100svh-5rem)] max-w-7xl items-center gap-10 px-5 py-12 md:px-8 lg:grid-cols-[0.95fr_minmax(0,1.05fr)] lg:py-10">
         <div className="reveal-up min-w-0">
           <span className="inline-flex rounded-full border border-[#C5C4DA] bg-[#DADEFD]/70 px-4 py-2 text-sm font-semibold text-[#0001B1]">
@@ -319,9 +321,9 @@ function PainPointsSection() {
           description="Manual processes and scattered tools are the biggest barriers to meeting new regulatory standards."
           align="left"
         />
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="stagger-children mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {painPoints.map(({ icon: Icon, title, description }) => (
-            <article key={title} className="rounded-2xl border border-[#C5C4DA] bg-[#F7F9FB] p-6 shadow-[0_12px_30px_rgba(25,28,30,0.04)] transition hover:-translate-y-1 hover:border-[#1117E8]">
+            <article key={title} className="interactive-card rounded-2xl border border-[#C5C4DA] bg-[#F7F9FB] p-6 shadow-[0_12px_30px_rgba(25,28,30,0.04)] hover:border-[#1117E8]">
               <Icon className="h-7 w-7 text-[#1117E8]" aria-hidden="true" />
               <h3 className="mt-6 text-lg font-bold text-[#191C1E]">{title}</h3>
               <p className="mt-3 text-sm leading-6 text-[#454557]">{description}</p>
@@ -342,10 +344,10 @@ function WorkflowSection() {
           description="PayTraka handles the heavy lifting of tax readiness in six simple steps."
           align="left"
         />
-        <div className="mt-12 grid gap-6 md:grid-cols-3 lg:grid-cols-6">
+        <div className="stagger-children mt-12 grid gap-6 md:grid-cols-3 lg:grid-cols-6">
           {workflow.map(([title, description], index) => (
             <article key={title} className="text-center">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#1117E8] text-xl font-extrabold text-white shadow-[0_14px_30px_rgba(17,23,232,0.2)]">
+              <div className="progress-glow mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#1117E8] text-xl font-extrabold text-white shadow-[0_14px_30px_rgba(17,23,232,0.2)]">
                 {index + 1}
               </div>
               <h3 className="mt-5 text-base font-bold text-[#191C1E]">{title}</h3>
@@ -369,11 +371,11 @@ function FeatureGridSection() {
             description="A purpose-built toolkit for Nigerian financial controllers and small business owners."
           />
         </div>
-        <div className="mx-auto mt-12 grid  gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="stagger-children mx-auto mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {features.map(({ icon: Icon, title, description }) => (
             <article
               key={title}
-              className="rounded-2xl border border-[#C5C4DA]/80 bg-white/70 p-6 shadow-[0_14px_30px_rgba(25,28,30,0.04)] backdrop-blur transition hover:-translate-y-1 hover:border-[#1117E8] hover:bg-white"
+              className="interactive-card rounded-2xl border border-[#C5C4DA]/80 bg-white/70 p-6 shadow-[0_14px_30px_rgba(25,28,30,0.04)] backdrop-blur hover:border-[#1117E8] hover:bg-white"
             >
               <span className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-[#DADEFD]/70 text-[#1117E8]">
                 <Icon size={18} aria-hidden="true" />
@@ -405,7 +407,7 @@ function ConsultantsSection() {
             </span>
             <h2 className="text-lg font-semibold">Tax Consultant Admin View</h2>
           </div>
-          <div className="mt-8 space-y-4">
+          <div className="stagger-children mt-8 space-y-4">
             {clients.map(([name, status, color]) => (
               <div key={name} className="rounded-lg bg-white/10 p-4">
                 <p className="text-xs text-white/70">Client</p>
@@ -463,7 +465,7 @@ function FAQSection() {
         <SectionHeader title="Frequently Asked Questions" description="" />
         <div className="mt-10 space-y-4">
           {faqs.map((faq) => (
-            <details key={faq.question} className="group rounded-lg border border-[#C5C4DA] bg-[#F7F9FB]">
+            <details key={faq.question} className="group interactive-card rounded-lg border border-[#C5C4DA] bg-[#F7F9FB]">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-semibold text-[#191C1E] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1117E8]">
                 {faq.question}
                 <span className="text-[#0001B1] transition group-open:rotate-45">+</span>
@@ -520,7 +522,7 @@ function Footer() {
     <footer className="border-t border-[#C5C4DA] bg-[#E9EEF4]">
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 md:grid-cols-[1.4fr_0.8fr_0.8fr_1.1fr] md:px-8">
         <div>
-          <Image src="/paytraka_logo/paytraka-logo-navbar.png" alt="PayTraka" width={180} height={52} className="h-11 w-auto object-contain" />
+            <Image src="/paytraka_logo/paytraka-logo-navbar.png" alt="PayTraka" width={180} height={52} className="h-11 w-auto object-contain" />
           <p className="mt-5 max-w-sm text-sm leading-6 text-[#454557]">
             The trusted e-invoicing readiness platform for the Nigerian business ecosystem.
           </p>
@@ -580,7 +582,7 @@ function FooterLinks({ title, links }: { title: string; links: string[][] }) {
 
 export function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#F7F9FB]">
+    <div className="public-theme min-h-screen bg-[#F7F9FB]">
       <Navbar />
       <main>
         <HeroSection />
