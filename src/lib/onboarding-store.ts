@@ -3,6 +3,7 @@
 export type OnboardingStep = "signup" | "verify-email" | "business-details" | "tax-profile" | "bank-details" | "preferences" | "review" | "complete";
 
 export type SignupData = {
+  userId?: string;
   firstName: string;
   lastName: string;
   workEmail: string;
@@ -14,6 +15,7 @@ export type SignupData = {
 export type BusinessDetailsData = {
   businessName: string;
   tradingName: string;
+  businessType: string;
   industry: string;
   taxId: string;
   contactPerson: string;
@@ -21,6 +23,8 @@ export type BusinessDetailsData = {
   city: string;
   state: string;
   country: string;
+  lga: string;
+  postalCode: string;
   phoneNumber: string;
   businessAddress: string;
 };
@@ -35,6 +39,12 @@ export type TaxProfileData = {
   environmentPreference: string;
   submissionPreference: string;
   providerPreference: string;
+  nrsBusinessId: string;
+  nrsApiKey: string;
+  nrsApiSecret: string;
+  nrsEntityId: string;
+  nrsPublicKey: string;
+  nrsCertificate: string;
 };
 
 export type BankDetailsData = {
@@ -79,6 +89,7 @@ export const defaultOnboardingState: OnboardingState = {
   completed: false,
   verificationCode: "246810",
   signup: {
+    userId: "",
     firstName: "",
     lastName: "",
     workEmail: "",
@@ -89,6 +100,7 @@ export const defaultOnboardingState: OnboardingState = {
   businessDetails: {
     businessName: "",
     tradingName: "",
+    businessType: "Limited Liability Company",
     industry: "",
     taxId: "",
     contactPerson: "",
@@ -96,6 +108,8 @@ export const defaultOnboardingState: OnboardingState = {
     city: "Somolu",
     state: "Lagos",
     country: "Nigeria",
+    lga: "",
+    postalCode: "",
     phoneNumber: "",
     businessAddress: "",
   },
@@ -109,6 +123,12 @@ export const defaultOnboardingState: OnboardingState = {
     environmentPreference: "Test/Sandbox first",
     submissionPreference: "Submit manually after review",
     providerPreference: "",
+    nrsBusinessId: "",
+    nrsApiKey: "",
+    nrsApiSecret: "",
+    nrsEntityId: "",
+    nrsPublicKey: "",
+    nrsCertificate: "",
   },
   bankDetails: {
     bankName: "",
@@ -166,14 +186,6 @@ export function saveOnboardingState(update: OnboardingStateUpdate): OnboardingSt
 
   if (typeof window !== "undefined") {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    window.localStorage.setItem(
-      "paytraka_user",
-      JSON.stringify({
-        name: `${next.signup.firstName} ${next.signup.lastName}`.trim() || "PayTraka User",
-        email: next.signup.workEmail || next.businessDetails.businessEmail,
-        companyName: next.signup.companyName || next.businessDetails.businessName,
-      }),
-    );
   }
 
   return next;

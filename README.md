@@ -53,16 +53,6 @@ http://localhost:3000
 
 If port `3000` is already in use, Next.js will choose the next available port.
 
-## Demo Login
-
-The mock authentication service uses fixed frontend-only credentials:
-
-| Field | Value |
-| --- | --- |
-| Email | `admin@paytraka.com` |
-| Password | `123456` |
-
-Authentication state is stored in `localStorage` under `paytraka_user`.
 
 ## Routes
 
@@ -179,6 +169,31 @@ Do not expose secrets with `NEXT_PUBLIC_`.
 | `npm run start` | Starts the production Next.js server |
 | `npm run lint` | Runs ESLint over the source files |
 | `npm run typecheck` | Runs TypeScript without emitting files |
+| `npm test` | Runs the automated Vitest suite |
+| `npm run test:api` | Runs the API-focused Vitest suite |
+
+## Automated API Tests
+
+The API tests use Vitest in a Node environment and are deterministic: external HTTP calls, cookie access, and route proxy calls are mocked.
+
+Run all tests:
+
+```bash
+npm test
+```
+
+Run only the API-focused tests:
+
+```bash
+npm run test:api
+```
+
+Current coverage includes:
+
+- `src/app/api/auth/session/route.ts`: session read/write/delete behavior, httpOnly cookie setting, malformed JSON, missing token/user validation, and corrupt profile-cookie handling.
+- `src/app/api/proxy/[...path]/route.ts`: authentication checks, missing path validation, query forwarding, JSON and multipart request forwarding, upstream validation responses, and upstream network failures.
+- `src/lib/api/*.ts`: auth, companies, customers, suppliers, products/categories, sales invoices, FIRS, and receipts client wrappers.
+- `src/lib/api/client.ts`: API error message extraction and browser-side 401 session-expiry behavior.
 
 ## Verification Notes
 
@@ -206,7 +221,7 @@ The underlying Next.js build and dev commands were verified through the Windows 
 - Invoice and receipt persistence is not durable.
 - PDF generation is currently a placeholder utility.
 - FIRS compliance messaging appears in the UI, but live FIRS validation/submission is not implemented.
-- No automated test suite is configured yet.
+- API route handlers and client API wrappers are covered by automated Vitest tests.
 
 ## License
 

@@ -97,7 +97,7 @@ export function PageHeader({ title, subtitle, action, breadcrumb }: { title: str
   );
 }
 
-export function MetricCard({ label, value, meta, tone = "neutral", icon: Icon }: { label: string; value: string; meta?: string; tone?: StatusTone; icon?: React.ElementType }) {
+export function MetricCard({ label, value, meta, tone = "neutral", icon: Icon }: { label: string; value: React.ReactNode; meta?: string; tone?: StatusTone; icon?: React.ElementType }) {
   return (
     <Card className="p-5">
       <div className="flex items-start justify-between gap-4">
@@ -128,7 +128,7 @@ export function ComplianceAlert({ title, text, badge, tone = "danger", action }:
   );
 }
 
-export function DataTable({ title, columns, rows, footer = "Showing 1 to 4 records", actions }: { title: string; columns: string[]; rows: TableRow[]; footer?: string; actions?: React.ReactNode }) {
+export function DataTable({ title, columns, rows, footer = "Showing 1 to 4 records", actions, footerActions }: { title: string; columns: string[]; rows: TableRow[]; footer?: string; actions?: React.ReactNode; footerActions?: React.ReactNode }) {
   return (
     <Card className="overflow-hidden">
       <div className="flex min-h-16 items-center justify-between gap-4 border-b border-[#C5C4DA] px-5">
@@ -146,7 +146,7 @@ export function DataTable({ title, columns, rows, footer = "Showing 1 to 4 recor
         </table>
       </div>
       <div className="flex flex-col gap-3 bg-[#F7F9FB] px-5 py-4 text-sm text-[#454557] sm:flex-row sm:items-center sm:justify-between">
-        <span>{footer}</span><div className="flex gap-2"><StatusBadge tone="primary">1</StatusBadge><span className="rounded-lg border border-[#C5C4DA] bg-white px-3 py-1">2</span><span className="rounded-lg border border-[#C5C4DA] bg-white px-3 py-1">3</span></div>
+        <span>{footer}</span>{footerActions ?? <div className="flex gap-2"><StatusBadge tone="primary">1</StatusBadge><span className="rounded-lg border border-[#C5C4DA] bg-white px-3 py-1">2</span><span className="rounded-lg border border-[#C5C4DA] bg-white px-3 py-1">3</span></div>}
       </div>
     </Card>
   );

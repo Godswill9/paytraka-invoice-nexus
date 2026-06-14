@@ -40,6 +40,9 @@ import {
   maskAccountNumber,
   saveOnboardingState,
 } from "@/lib/onboarding-store";
+import { getApiErrorMessage } from "@/lib/api/client";
+import { getMe, login, register, verifyOtp } from "@/lib/api/auth";
+import { submitKyc } from "@/lib/api/companies";
 
 type PageKind = "signup" | "verify" | "business" | "tax" | "bank" | "preferences" | "review" | "dashboard";
 
@@ -342,7 +345,7 @@ export function SignupPage() {
     setForm((current) => ({ ...current, ...getOnboardingState().signup }));
   }, []);
 
-  function submit(event: FormEvent) {
+  async function submit(event: FormEvent) {
     event.preventDefault();
     const nextErrors = requireFields(form, ["firstName", "lastName", "workEmail", "phoneNumber", "companyName", "password", "confirmPassword"]);
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.workEmail)) nextErrors.workEmail = "Enter a valid work email.";
@@ -353,16 +356,31 @@ export function SignupPage() {
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
     setSubmitting(true);
-    const signup: SignupData = {
-      firstName: form.firstName,
-      lastName: form.lastName,
-      workEmail: form.workEmail,
-      phoneNumber: form.phoneNumber,
-      companyName: form.companyName,
-      emailVerified: false,
-    };
-    save({ signup, currentStep: "verify-email", verificationCode: "246810" });
-    router.push("/verify-email");
+    try {
+      const response = await register({
+        first_name: form.firstName,
+        last_name: form.lastName,
+        email: form.workEmail,
+        password: form.password,
+        phone: form.phoneNumber,
+        company_name: form.companyName,
+      });
+      const signup: SignupData = {
+        userId: response.data.user_id ?? response.data.user?.id ?? "",
+        firstName: form.firstName,
+        lastName: form.lastName,
+        workEmail: form.workEmail,
+        phoneNumber: form.phoneNumber,
+        companyName: form.companyName,
+        emailVerified: false,
+      };
+      save({ signup, currentStep: "verify-email", verificationCode: "" });
+      router.push("/verify-email");
+    } catch (requestError) {
+      setErrors({ form: getApiErrorMessage(requestError, "Unable to create workspace.") });
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -400,6 +418,7 @@ export function SignupPage() {
           I agree to the Terms of Service, Privacy Policy, and responsible use of PayTraka readiness tools.
         </label>
         {errors.terms ? <p className="mt-2 text-sm font-semibold text-red-600">{errors.terms}</p> : null}
+        {errors.form ? <p className="mt-4 text-sm font-semibold text-red-600">{errors.form}</p> : null}
         <button disabled={submitting} className="mt-6 h-12 rounded-xl bg-[#1117E8] text-base font-bold text-white shadow-[0_16px_32px_rgba(17,23,232,0.2)] transition hover:bg-[#0001B1] disabled:opacity-60">
           {submitting ? "Creating..." : "Create Workspace"}
         </button>
@@ -415,47 +434,43 @@ export function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useOnboardingGuard("auth");
 
-  function submit(event: FormEvent) {
+  async function submit(event: FormEvent) {
     event.preventDefault();
     if (!email || !password) {
       setError("Enter your email and password to continue.");
       return;
     }
-    const state = getOnboardingState();
-    const stepRoutes: Partial<Record<OnboardingState["currentStep"], string>> = {
-      "verify-email": "/verify-email",
-      "business-details": "/onboarding/business-details",
-      "tax-profile": "/onboarding/tax-profile",
-      "bank-details": "/onboarding/bank-details",
-      preferences: "/onboarding/preferences",
-      review: "/onboarding/review",
-    };
-
-    if (!state.signup.workEmail) {
+    setSubmitting(true);
+    setError("");
+    try {
+      const response = await login(email, password);
+      const user = response.data.user;
       saveOnboardingState({
-        completed: true,
-        currentStep: "complete",
+        completed: Boolean(user.kyc_complete),
+        currentStep: user.kyc_complete ? "complete" : "business-details",
         signup: {
           workEmail: email,
-          firstName: "Admin",
-          lastName: "User",
-          companyName: "Chozol Global Services Ltd",
+          firstName: user.first_name ?? "Admin",
+          lastName: user.last_name ?? "User",
+          companyName: "",
           emailVerified: true,
         },
         businessDetails: {
-          businessName: "Chozol Global Services Ltd",
+          businessName: "",
           businessEmail: email,
-          contactPerson: "Admin User",
+          contactPerson: `${user.first_name ?? "Admin"} ${user.last_name ?? "User"}`.trim(),
         },
       });
-      router.push("/dashboard");
-      return;
+      router.push(user.kyc_complete ? "/dashboard" : "/onboarding/business-details");
+    } catch (requestError) {
+      setError(getApiErrorMessage(requestError, "Unable to sign in."));
+    } finally {
+      setSubmitting(false);
     }
-
-    router.push(state.completed ? "/dashboard" : stepRoutes[state.currentStep] ?? "/onboarding/business-details");
   }
 
   return (
@@ -482,10 +497,10 @@ export function LoginPage() {
         </div>
         <div className="mt-6 flex items-center justify-between gap-4 text-base">
           <label className="flex items-center gap-3 text-[#454557]"><input type="checkbox" className="h-5 w-5 rounded border-[#C5C4DA]" /> Remember me</label>
-          <a href="#" className="font-bold text-[#0001B1]">Forgot Password?</a>
+          <Link href="/login?recover=true" className="font-bold text-[#0001B1]">Forgot Password?</Link>
         </div>
         {error ? <p className="mt-4 text-sm font-semibold text-red-600">{error}</p> : null}
-        <button className="mt-7 h-12 rounded-xl bg-[#1117E8] text-base font-bold text-white transition hover:bg-[#0001B1]">Sign In</button>
+        <button disabled={submitting} className="mt-7 h-12 rounded-xl bg-[#1117E8] text-base font-bold text-white transition hover:bg-[#0001B1] disabled:opacity-60">{submitting ? "Signing in..." : "Sign In"}</button>
         <p className="mt-8 text-center text-base text-[#454557]">Don&apos;t have an account? <Link href="/signup" className="font-bold text-[#0001B1]">Sign up</Link></p>
       </form>
     </AuthOnboardingLayout>
@@ -497,6 +512,7 @@ export function VerifyEmailPage() {
   const { state, save } = useOnboarding();
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const refs = useRef<Array<HTMLInputElement | null>>([]);
 
   useOnboardingGuard("verify");
@@ -509,14 +525,28 @@ export function VerifyEmailPage() {
     if (digit && index < 5) refs.current[index + 1]?.focus();
   }
 
-  function submit(event: FormEvent) {
+  async function submit(event: FormEvent) {
     event.preventDefault();
-    if (code.join("") !== state.verificationCode) {
-      setError("Use verification code 246810 for this mock workspace.");
+    const otp = code.join("");
+    if (!state.signup.userId) {
+      setError("Registration session expired. Please create your workspace again.");
       return;
     }
-    save({ signup: { emailVerified: true }, currentStep: "business-details" });
-    router.push("/onboarding/business-details");
+    if (otp.length !== 6) {
+      setError("Enter the 6-digit verification code sent to your email.");
+      return;
+    }
+    setSubmitting(true);
+    setError("");
+    try {
+      const response = await verifyOtp(state.signup.userId, otp);
+      save({ signup: { emailVerified: true }, currentStep: response.data.user.kyc_complete ? "complete" : "business-details", completed: Boolean(response.data.user.kyc_complete) });
+      router.push(response.data.user.kyc_complete ? "/dashboard" : "/onboarding/business-details");
+    } catch (requestError) {
+      setError(getApiErrorMessage(requestError, "Unable to verify OTP."));
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -550,8 +580,8 @@ export function VerifyEmailPage() {
           ))}
         </div>
         {error ? <p className="mt-4 text-sm font-semibold text-red-600">{error}</p> : null}
-        <button className="mt-10 h-16 rounded-xl bg-[#1117E8] text-xl font-bold text-white transition hover:bg-[#0001B1]">Verify & Continue</button>
-        <p className="mt-7 text-center text-lg text-[#454557]">Didn&apos;t receive a code? <button type="button" onClick={() => setError("New code sent. Use 246810 in this mock flow.")} className="font-bold text-[#0001B1]">Resend</button></p>
+        <button disabled={submitting} className="mt-10 h-16 rounded-xl bg-[#1117E8] text-xl font-bold text-white transition hover:bg-[#0001B1] disabled:opacity-60">{submitting ? "Verifying..." : "Verify & Continue"}</button>
+        <p className="mt-7 text-center text-lg text-[#454557]">Didn&apos;t receive a code? <button type="button" onClick={() => setError("Request a new OTP from the registration email flow.")} className="font-bold text-[#0001B1]">Resend</button></p>
       </form>
     </AuthOnboardingLayout>
   );
@@ -581,7 +611,7 @@ export function BusinessDetailsPage() {
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    const nextErrors = requireFields(form, ["businessName", "industry", "taxId", "contactPerson", "businessEmail", "city", "state", "country", "phoneNumber", "businessAddress"]);
+    const nextErrors = requireFields(form, ["businessName", "businessType", "industry", "taxId", "contactPerson", "businessEmail", "city", "state", "country", "phoneNumber", "businessAddress"]);
     if (form.businessEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.businessEmail)) nextErrors.businessEmail = "Enter a valid business email.";
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
@@ -596,6 +626,7 @@ export function BusinessDetailsPage() {
         <div className="grid gap-6 md:grid-cols-2">
           <Field label="Business Name" error={errors.businessName}><input value={form.businessName} onChange={(e) => setForm({ ...form, businessName: e.target.value })} className={inputClass} placeholder="Legal registered name" /></Field>
           <Field label="Trading Name (Optional)"><input value={form.tradingName} onChange={(e) => setForm({ ...form, tradingName: e.target.value })} className={inputClass} placeholder="As seen by customers" /></Field>
+          <Field label="Business Type" error={errors.businessType}><SelectField value={form.businessType} onChange={(businessType) => setForm({ ...form, businessType })} options={["Limited Liability Company", "Sole Proprietorship", "Partnership", "NGO", "Government Agency"]} placeholder="Select business type" /></Field>
           <div className="md:col-span-2"><Field label="Industry" error={errors.industry}><SelectField value={form.industry} onChange={(industry) => setForm({ ...form, industry })} options={industries} placeholder="Select industry" /></Field></div>
           <Field label="Tax Identification Number" error={errors.taxId}><input value={form.taxId} onChange={(e) => setForm({ ...form, taxId: e.target.value })} className={inputClass} placeholder="TIN or CAC Registration Number" /></Field>
           <Field label="Contact Person" error={errors.contactPerson}><input value={form.contactPerson} onChange={(e) => setForm({ ...form, contactPerson: e.target.value })} className={inputClass} placeholder="Full legal name" /></Field>
@@ -603,6 +634,8 @@ export function BusinessDetailsPage() {
           <Field label="City" error={errors.city}><input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className={inputClass} placeholder="Somolu" /></Field>
           <Field label="State" error={errors.state}><SelectField value={form.state} onChange={(state) => setForm({ ...form, state })} options={states} placeholder="Select state" /></Field>
           <Field label="Country" error={errors.country}><input value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} className={inputClass} placeholder="Nigeria" /></Field>
+          <Field label="Local Government Area (Optional)"><input value={form.lga} onChange={(e) => setForm({ ...form, lga: e.target.value })} className={inputClass} placeholder="Somolu" /></Field>
+          <Field label="Postal Code (Optional)"><input value={form.postalCode} onChange={(e) => setForm({ ...form, postalCode: e.target.value })} className={inputClass} placeholder="100001" /></Field>
           <Field label="Phone Number" error={errors.phoneNumber}><div className="flex"><span className="inline-flex h-14 items-center rounded-l-xl border border-r-0 border-[#C5C4DA] bg-white px-5 text-[#454557]">+234</span><input value={form.phoneNumber} onChange={(e) => setForm({ ...form, phoneNumber: e.target.value })} className={`${inputClass} rounded-l-none`} placeholder="800 000 0000" /></div></Field>
           <Field label="Business Address" error={errors.businessAddress}><textarea value={form.businessAddress} onChange={(e) => setForm({ ...form, businessAddress: e.target.value })} className={`${inputClass} h-28 py-4`} placeholder="Street name, building number, and city" /></Field>
         </div>
@@ -653,6 +686,17 @@ export function TaxProfilePage() {
               {option}
             </label>
           ))}
+        </fieldset>
+        <fieldset className="mt-6 rounded-2xl border border-[#C5C4DA] bg-white p-6">
+          <legend className="px-2 text-base font-bold">FIRS/NRS Credentials Optional</legend>
+          <div className="mt-3 grid gap-6 md:grid-cols-2">
+            <Field label="NRS Business ID"><input value={form.nrsBusinessId} onChange={(e) => setForm({ ...form, nrsBusinessId: e.target.value })} className={inputClass} placeholder="NRS business ID" /></Field>
+            <Field label="NRS API Key"><input value={form.nrsApiKey} onChange={(e) => setForm({ ...form, nrsApiKey: e.target.value })} className={inputClass} placeholder="API key" /></Field>
+            <Field label="NRS API Secret"><input value={form.nrsApiSecret} onChange={(e) => setForm({ ...form, nrsApiSecret: e.target.value })} className={inputClass} placeholder="API secret" /></Field>
+            <Field label="NRS Entity ID"><input value={form.nrsEntityId} onChange={(e) => setForm({ ...form, nrsEntityId: e.target.value })} className={inputClass} placeholder="Entity ID" /></Field>
+            <Field label="NRS Public Key"><input value={form.nrsPublicKey} onChange={(e) => setForm({ ...form, nrsPublicKey: e.target.value })} className={inputClass} placeholder="Public key" /></Field>
+            <Field label="NRS Certificate"><textarea value={form.nrsCertificate} onChange={(e) => setForm({ ...form, nrsCertificate: e.target.value })} className={`${inputClass} h-28 py-4`} placeholder="Paste certificate text" /></Field>
+          </div>
         </fieldset>
         <div className="mt-6 rounded-2xl border border-[#C5C4DA] bg-[#EEF1FF] p-5 text-sm leading-6 text-[#454557]">
           PayTraka can prepare invoice data for submission through approved APP/SI pathways. Do not present PayTraka as already approved unless this has been officially confirmed.
@@ -768,7 +812,7 @@ export function PreferencesPage() {
         </div>
         <StepActions backHref="/onboarding/bank-details" />
         <div className="mt-6 flex flex-wrap gap-6 text-sm font-semibold text-[#454557]">
-          <a href="#">Terms of Service</a><a href="#">Privacy Policy</a><a href="#">Refund Policy</a>
+          <Link href="/resources">Terms of Service</Link><Link href="/resources">Privacy Policy</Link><Link href="/resources">Refund Policy</Link>
         </div>
       </form>
     </AuthOnboardingLayout>
@@ -779,6 +823,8 @@ export function ReviewPage() {
   const router = useRouter();
   const { state, save, ready } = useOnboarding();
   const [confirmed, setConfirmed] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   useOnboardingGuard("onboarding");
 
@@ -791,12 +837,48 @@ export function ReviewPage() {
 
   if (!ready) return null;
 
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    setSubmitting(true);
+    setError("");
+    try {
+      const me = await getMe();
+      await submitKyc(me.data.company_id, {
+        company_name: state.businessDetails.businessName || state.signup.companyName,
+        trading_name: state.businessDetails.tradingName,
+        business_email: state.businessDetails.businessEmail || state.signup.workEmail,
+        business_phone: state.businessDetails.phoneNumber || state.signup.phoneNumber,
+        tax_identification_number: state.taxProfile.tin || state.businessDetails.taxId,
+        rc_number: state.taxProfile.cacNumber || state.businessDetails.taxId,
+        business_type: state.businessDetails.businessType,
+        address: state.businessDetails.businessAddress,
+        city: state.businessDetails.city,
+        state: state.businessDetails.state,
+        country: state.businessDetails.country || "Nigeria",
+        lga: state.businessDetails.lga,
+        postal_code: state.businessDetails.postalCode,
+        nrs_businessid: state.taxProfile.nrsBusinessId,
+        nrs_apikey: state.taxProfile.nrsApiKey,
+        nrs_apisecret: state.taxProfile.nrsApiSecret,
+        nrs_entityid: state.taxProfile.nrsEntityId,
+        nrs_publickey: state.taxProfile.nrsPublicKey,
+        nrs_certificate: state.taxProfile.nrsCertificate,
+      });
+      save({ completed: true, currentStep: "complete", preferences: { confirmedAccuracy: confirmed } });
+      router.push("/dashboard");
+    } catch (requestError) {
+      setError(getApiErrorMessage(requestError, "Unable to submit KYC details."));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   return (
     <AuthOnboardingLayout kind="review">
-      <form onSubmit={(event) => { event.preventDefault(); save({ completed: true, currentStep: "complete", preferences: { confirmedAccuracy: confirmed } }); router.push("/dashboard"); }} className="mx-auto max-w-6xl py-8">
+      <form onSubmit={submit} className="mx-auto max-w-6xl py-8">
         <ProgressHeader step="STEP 5 OF 5" title="Review your setup" percent={100} />
         <div className="grid gap-5 md:grid-cols-2">
-          {cards.map(([title, href, rows]) => (
+        {cards.map(([title, href, rows]) => (
             <article key={title as string} className="rounded-2xl border border-[#C5C4DA] bg-white p-6">
               <div className="flex items-center justify-between gap-4">
                 <h2 className="text-xl font-bold text-[#191C1E]">{title as string}</h2>
@@ -817,7 +899,8 @@ export function ReviewPage() {
           <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} className="mt-1 h-5 w-5" />
           I confirm that the information provided is accurate to the best of my knowledge.
         </label>
-        <StepActions backHref="/onboarding/preferences" nextLabel="Complete Setup" disabled={!confirmed} />
+        {error ? <p className="mt-4 text-sm font-semibold text-red-600">{error}</p> : null}
+        <StepActions backHref="/onboarding/preferences" nextLabel={submitting ? "Submitting..." : "Complete Setup"} disabled={!confirmed || submitting} />
       </form>
     </AuthOnboardingLayout>
   );
