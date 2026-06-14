@@ -1,6 +1,8 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://paytraka-api.domain-plusltd.com/api";
+export const API_BASE_URL = process.env.PAYTRAKA_API_BASE_URL
+  ?? process.env.NEXT_PUBLIC_API_BASE_URL
+  ?? "https://paytraka-api.domain-plusltd.com/api";
 
 const browserBaseURL = "/api/proxy";
 

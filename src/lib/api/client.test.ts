@@ -69,6 +69,13 @@ describe("api client helpers", () => {
     }))).toBe("PayTraka is temporarily unavailable. Please try again in a few minutes.");
   });
 
+  it("uses same-origin proxy URLs in the browser to avoid mixed-content requests", async () => {
+    const { default: apiClient, publicApiClient } = await import("./client");
+
+    expect(apiClient.defaults.baseURL).toBe("/api/proxy");
+    expect(publicApiClient.defaults.baseURL).toBe("/api/proxy");
+  });
+
   it("clears the local session and redirects when a browser-side protected request receives 401", async () => {
     const { default: apiClient } = await import("./client");
     let adapterCalls = 0;
