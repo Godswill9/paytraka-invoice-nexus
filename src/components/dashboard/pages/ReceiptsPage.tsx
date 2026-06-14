@@ -2,40 +2,15 @@
 
 import { Banknote, CheckCircle2, Download, Eye, ReceiptText } from "lucide-react";
 import { useState } from "react";
-import { BottomInsight, Button, DashboardFormModal, DataTable, MetricCard, notifyDashboard, PageHeader, StatusBadge, rowActions } from "../ui";
-
-type ReceiptRecord = {
-  number: string;
-  customer: string;
-  invoice: string;
-  amount: string;
-  method: string;
-  date: string;
-  status: "Matched" | "Unlinked" | "Reconciled" | "Draft";
-};
-
-const initialReceipts: ReceiptRecord[] = [
-  { number: "RCP-2026-089", customer: "Aliko & Associates", invoice: "INV-10442", amount: "₦450,000.00", method: "Bank Transfer", date: "Oct 24, 2026", status: "Matched" },
-  { number: "RCP-2026-090", customer: "Olu Clean Energy", invoice: "-", amount: "₦1,200,000.00", method: "POS", date: "Oct 23, 2026", status: "Unlinked" },
-  { number: "RCP-2026-091", customer: "Kuda Digital Hub", invoice: "INV-10446", amount: "₦75,500.00", method: "Bank Transfer", date: "Oct 22, 2026", status: "Matched" },
-  { number: "RCP-2026-092", customer: "Small Biz Ltd", invoice: "-", amount: "₦12,000.00", method: "Cash", date: "Oct 21, 2026", status: "Unlinked" },
-];
+import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
+import { Pagination } from "@/components/ui/Pagination";
+import { useReceipts } from "@/hooks/useReceipts";
+import { BottomInsight, Button, ComplianceAlert, DashboardFormModal, DataTable, MetricCard, notifyDashboard, PageHeader, StatusBadge, rowActions } from "../ui";
 
 export function ReceiptsPage() {
+  const { receipts, pagination, pager, loading, error } = useReceipts();
   const [modalOpen, setModalOpen] = useState(false);
-  const [rows, setRows] = useState(initialReceipts);
-
-  function addReceipt() {
-    setRows((current) => [
-      { number: `RCP-2026-${String(93 + current.length - initialReceipts.length).padStart(3, "0")}`, customer: "New Lagos Customer", invoice: "INV-2026-0105", amount: "₦0.00", method: "Bank Transfer", date: "Today", status: "Draft" },
-      ...current,
-    ]);
-  }
-
-  function markReconciled(number: string) {
-    setRows((current) => current.map((row) => row.number === number ? { ...row, status: "Reconciled" } : row));
-    notifyDashboard(`${number} marked as reconciled`);
-  }
+  const totalReceived = receipts.reduce((sum, receipt) => sum + Number(receipt.amount_paid ?? 0), 0);
 
   return (
     <>
@@ -46,36 +21,37 @@ export function ReceiptsPage() {
         title="Record Payment"
         description="Record a customer payment and link it to an invoice."
         submitLabel="Save Receipt"
-        fields={["Customer", "Invoice reference", "Amount received", "Payment method", "Payment date", "Transaction reference", "Notes"]}
-        onSubmit={addReceipt}
+        fields={["Sales invoice", "Amount paid", "Payment method", "Payment date", "Currency", "Note"]}
+        onSubmit={() => notifyDashboard("Use the full API form to save this receipt")}
         successMessage="Receipt saved"
       />
+      {error ? <ComplianceAlert title="Unable to load receipts" text={error} /> : null}
       <div className="mb-6 grid gap-5 md:grid-cols-3">
-        <MetricCard label="Total Received This Month" value="₦28.4M" meta="+12.4% vs last month" tone="success" icon={Banknote} />
-        <MetricCard label="Outstanding Balance" value="₦14.4M" meta="Across 14 pending invoices" tone="warning" icon={ReceiptText} />
-        <MetricCard label="Receipts Issued" value="96" meta="98% compliance score" icon={CheckCircle2} />
+        <MetricCard label="Total Received This Page" value={<CurrencyAmount amount={totalReceived} />} meta="From loaded API receipts" tone="success" icon={Banknote} />
+        <MetricCard label="Receipt Records" value={String(pagination?.total ?? receipts.length)} meta="Total API records" tone="warning" icon={ReceiptText} />
+        <MetricCard label="Receipts Issued" value={String(receipts.length)} meta="Loaded on this page" icon={CheckCircle2} />
       </div>
       <DataTable
         title="Recent Transactions"
-        columns={["Receipt #", "Customer", "Linked Invoice", "Amount", "Payment Method", "Date", "Status", "Actions"]}
-        rows={rows.map((row) => ({
-          "Receipt #": <b className="text-[#0001B1]">{row.number}</b>,
-          Customer: row.customer,
-          "Linked Invoice": row.invoice,
-          Amount: <b>{row.amount}</b>,
-          "Payment Method": row.method,
-          Date: row.date,
-          Status: <StatusBadge>{row.status}</StatusBadge>,
+        columns={["Receipt ID", "Linked Invoice", "Amount", "Payment Method", "Date", "Currency", "Note", "Actions"]}
+        rows={receipts.map((receipt) => ({
+          "Receipt ID": <b className="text-[#0001B1]">{receipt.id}</b>,
+          "Linked Invoice": receipt.sales_invoice_id,
+          Amount: <b><CurrencyAmount amount={receipt.amount_paid} currency={receipt.currency} /></b>,
+          "Payment Method": <StatusBadge>{receipt.payment_method}</StatusBadge>,
+          Date: receipt.payment_date,
+          Currency: receipt.currency,
+          Note: receipt.note ?? "-",
           Actions: rowActions(
             <>
-              <button type="button" onClick={() => notifyDashboard(`${row.number} preview opened`)} aria-label={`View ${row.number}`} className="rounded p-1 text-[#454557]"><Eye className="h-4 w-4" /></button>
-              <button type="button" onClick={() => notifyDashboard(`${row.number} PDF downloaded`)} aria-label={`Download ${row.number}`} className="rounded p-1 text-[#454557]"><Download className="h-4 w-4" /></button>
-              {row.status !== "Reconciled" ? <Button variant="secondary" className="min-h-9 px-3" onClick={() => markReconciled(row.number)}>Reconcile</Button> : null}
+              <button type="button" onClick={() => notifyDashboard(`${receipt.id} preview opened`)} aria-label={`View ${receipt.id}`} className="rounded p-1 text-[#454557]"><Eye className="h-4 w-4" /></button>
+              <button type="button" onClick={() => notifyDashboard(`${receipt.id} PDF downloaded`)} aria-label={`Download ${receipt.id}`} className="rounded p-1 text-[#454557]"><Download className="h-4 w-4" /></button>
             </>,
-            row.number,
+            receipt.id,
           ),
         }))}
-        footer={`Showing ${rows.length} receipt entries`}
+        footer={loading ? "Loading API records..." : `Showing ${receipts.length} of ${pagination?.total ?? receipts.length} receipts`}
+        footerActions={<Pagination pagination={pagination} onPageChange={pager.setPage} />}
       />
       <BottomInsight title="Payment Reconciliation Health" asideTitle="Tax Compliance Tip" />
     </>

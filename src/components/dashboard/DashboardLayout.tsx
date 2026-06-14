@@ -39,8 +39,7 @@ function useDashboardGuard() {
         setReady(true);
       } catch {
         const state = getOnboardingState();
-        const storedUser = window.localStorage.getItem("paytraka_user");
-        if (!storedUser && !state.signup.workEmail) {
+        if (!state.signup.workEmail) {
           router.replace("/login");
           return;
         }

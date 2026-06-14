@@ -1,86 +1,119 @@
 "use client";
 
 import { AlertTriangle, ChevronDown, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
-import { customerRows, productRows } from "../data";
+import { useEffect, useMemo, useState } from "react";
+import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
+import { useCustomers } from "@/hooks/useCustomers";
+import { useInvoices } from "@/hooks/useInvoices";
+import { useProducts } from "@/hooks/useProducts";
 import { Button, Card, ComplianceAlert, FormShell, notifyDashboard, PageHeader } from "../ui";
 
 type InvoiceItem = {
   id: number;
-  product: string;
+  productId: string;
+  description: string;
   quantity: number;
   rate: number;
   vatRate: number;
-  discount: number;
 };
-
-const money = new Intl.NumberFormat("en-NG", {
-  style: "currency",
-  currency: "NGN",
-  maximumFractionDigits: 2,
-});
-
-function amountFromText(value: string) {
-  return Number(value.replace(/[^\d.]/g, "")) || 0;
-}
-
-function productRate(productName: string) {
-  const product = productRows.find(([name]) => name === productName);
-  return product ? amountFromText(product[3]) : 0;
-}
-
-function productVat(productName: string) {
-  const product = productRows.find(([name]) => name === productName);
-  return product?.[4].includes("7.5") ? 7.5 : 0;
-}
 
 function lineSubtotal(item: InvoiceItem) {
   return item.quantity * item.rate;
 }
 
-function lineDiscount(item: InvoiceItem) {
-  return lineSubtotal(item) * (item.discount / 100);
-}
-
-function lineTaxable(item: InvoiceItem) {
-  return Math.max(lineSubtotal(item) - lineDiscount(item), 0);
-}
-
 function lineVat(item: InvoiceItem) {
-  return lineTaxable(item) * (item.vatRate / 100);
+  return lineSubtotal(item) * (item.vatRate / 100);
 }
 
 function lineTotal(item: InvoiceItem) {
-  return lineTaxable(item) + lineVat(item);
+  return lineSubtotal(item) + lineVat(item);
 }
 
 function SalesInvoiceBuilder() {
-  const [customer, setCustomer] = useState(customerRows[0][0]);
-  const [invoiceNumber, setInvoiceNumber] = useState("INV-2026-0105");
-  const [issueDate, setIssueDate] = useState("2026-10-25");
-  const [dueDate, setDueDate] = useState("2026-11-08");
+  const { customers, loading: customersLoading, error: customersError } = useCustomers();
+  const { products, loading: productsLoading, error: productsError } = useProducts();
+  const { create } = useInvoices();
+  const [customerId, setCustomerId] = useState("");
+  const [invoiceType, setInvoiceType] = useState("standard_invoice");
+  const [issueDate, setIssueDate] = useState(new Date().toISOString().slice(0, 10));
+  const [dueDate, setDueDate] = useState(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10));
+  const [discountAmount, setDiscountAmount] = useState(0);
   const [notes, setNotes] = useState("Thank you for your business.");
-  const [lineItems, setLineItems] = useState<InvoiceItem[]>([
-    { id: 1, product: "Enterprise Software Suite", quantity: 1, rate: productRate("Enterprise Software Suite"), vatRate: productVat("Enterprise Software Suite"), discount: 0 },
-    { id: 2, product: "Consultancy - Tier 1", quantity: 2, rate: productRate("Consultancy - Tier 1"), vatRate: productVat("Consultancy - Tier 1"), discount: 5 },
-  ]);
+  const [lineItems, setLineItems] = useState<InvoiceItem[]>([]);
+  const [saving, setSaving] = useState(false);
+
+  const productById = useMemo(() => new Map(products.map((product) => [product.id, product])), [products]);
+  const selectedCustomer = customers.find((customer) => customer.id === customerId);
   const subtotal = lineItems.reduce((sum, item) => sum + lineSubtotal(item), 0);
-  const discount = lineItems.reduce((sum, item) => sum + lineDiscount(item), 0);
   const vat = lineItems.reduce((sum, item) => sum + lineVat(item), 0);
-  const total = lineItems.reduce((sum, item) => sum + lineTotal(item), 0);
+  const total = Math.max(lineItems.reduce((sum, item) => sum + lineTotal(item), 0) - discountAmount, 0);
+
+  useEffect(() => {
+    if (!customerId && customers[0]) setCustomerId(customers[0].id);
+  }, [customerId, customers]);
+
+  useEffect(() => {
+    if (lineItems.length || !products[0]) return;
+    const product = products[0];
+    setLineItems([{ id: Date.now(), productId: product.id, description: product.description ?? product.name, quantity: 1, rate: Number(product.unit_price ?? 0), vatRate: Number(product.tax_rate ?? 0) }]);
+  }, [lineItems.length, products]);
 
   function updateItem(id: number, updates: Partial<InvoiceItem>) {
     setLineItems((current) => current.map((item) => item.id === id ? { ...item, ...updates } : item));
   }
 
-  function chooseProduct(id: number, product: string) {
-    updateItem(id, { product, rate: productRate(product), vatRate: productVat(product) });
+  function chooseProduct(id: number, productId: string) {
+    const product = productById.get(productId);
+    updateItem(id, {
+      productId,
+      description: product?.description ?? product?.name ?? "",
+      rate: Number(product?.unit_price ?? 0),
+      vatRate: Number(product?.tax_rate ?? 0),
+    });
   }
 
   function addItem() {
-    const product = productRows[0][0];
-    setLineItems((current) => [...current, { id: Date.now(), product, quantity: 1, rate: productRate(product), vatRate: productVat(product), discount: 0 }]);
+    const product = products[0];
+    setLineItems((current) => [...current, {
+      id: Date.now(),
+      productId: product?.id ?? "",
+      description: product?.description ?? product?.name ?? "",
+      quantity: 1,
+      rate: Number(product?.unit_price ?? 0),
+      vatRate: Number(product?.tax_rate ?? 0),
+    }]);
     notifyDashboard("New invoice line item added");
+  }
+
+  async function saveInvoice() {
+    if (!customerId || lineItems.length === 0) {
+      notifyDashboard("Select a customer and add at least one line item");
+      return;
+    }
+    setSaving(true);
+    try {
+      const response = await create({
+        customer_id: customerId,
+        invoice_type: invoiceType,
+        issue_date: issueDate,
+        due_date: dueDate,
+        currency: "NGN",
+        notes,
+        discount_amount: discountAmount,
+        line_items: lineItems.map((item) => ({
+          product_id: item.productId || undefined,
+          description: item.description,
+          quantity: item.quantity,
+          unit_price: item.rate,
+          tax_rate: item.vatRate,
+        })),
+      });
+      notifyDashboard(`${response.data.invoice_number} created`);
+    } catch (error) {
+      notifyDashboard(error instanceof Error ? error.message : "Unable to create invoice");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -89,8 +122,9 @@ function SalesInvoiceBuilder() {
         title="Create Sales Invoice"
         subtitle="Select a customer, add products or services, calculate VAT, and prepare the invoice for sending."
         breadcrumb="Dashboard / Invoices / Create Invoice"
-        action={<><Button variant="secondary" onClick={() => notifyDashboard(`${invoiceNumber} saved as draft`)}>Save Draft</Button><Button onClick={() => notifyDashboard(`${invoiceNumber} created for ${customer}`)}>Create Invoice</Button></>}
+        action={<><Button variant="secondary" href="/dashboard/invoices/sales">Cancel</Button><Button onClick={saveInvoice}>{saving ? "Creating..." : "Create Invoice"}</Button></>}
       />
+      {customersError || productsError ? <ComplianceAlert title="Unable to load API data" text={customersError || productsError} /> : null}
 
       <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="space-y-6">
@@ -98,12 +132,16 @@ function SalesInvoiceBuilder() {
             <h2 className="text-xl font-bold">Customer & Invoice Details</h2>
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               <label className="block text-sm font-bold text-[#454557]">Customer
-                <select value={customer} onChange={(event) => setCustomer(event.target.value)} className="mt-2 h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]">
-                  {customerRows.map(([name, tin]) => <option key={name} value={name}>{name} {tin === "TIN Missing" ? "(TIN missing)" : ""}</option>)}
+                <select value={customerId} onChange={(event) => setCustomerId(event.target.value)} disabled={customersLoading} className="mt-2 h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]">
+                  {customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name} {!customer.tax_identification_number ? "(TIN missing)" : ""}</option>)}
                 </select>
               </label>
-              <label className="block text-sm font-bold text-[#454557]">Invoice Number
-                <input value={invoiceNumber} onChange={(event) => setInvoiceNumber(event.target.value)} className="mt-2 h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]" />
+              <label className="block text-sm font-bold text-[#454557]">Invoice Type
+                <select value={invoiceType} onChange={(event) => setInvoiceType(event.target.value)} className="mt-2 h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]">
+                  <option value="standard_invoice">Standard invoice</option>
+                  <option value="credit_note">Credit note</option>
+                  <option value="debit_note">Debit note</option>
+                </select>
               </label>
               <label className="block text-sm font-bold text-[#454557]">Issue Date
                 <input type="date" value={issueDate} onChange={(event) => setIssueDate(event.target.value)} className="mt-2 h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]" />
@@ -118,30 +156,30 @@ function SalesInvoiceBuilder() {
             <div className="flex flex-col gap-3 border-b border-[#C5C4DA] bg-[#F7F9FB] p-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-xl font-bold">Invoice Items</h2>
-                <p className="mt-1 text-sm text-[#454557]">Choose products/services from your catalog, then adjust quantity, VAT, and discounts.</p>
+                <p className="mt-1 text-sm text-[#454557]">Choose products/services from your API catalog, then adjust quantity and VAT.</p>
               </div>
               <Button variant="secondary" onClick={addItem}><Plus className="h-4 w-4" /> Add Item</Button>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[920px] text-left">
                 <thead className="bg-[#F1F4F8] text-xs uppercase text-[#454557]">
-                  <tr>{["Product / Service", "Qty", "Rate", "VAT %", "Discount %", "Line Total", ""].map((column) => <th key={column} className="px-4 py-4">{column}</th>)}</tr>
+                  <tr>{["Product / Service", "Description", "Qty", "Rate", "VAT %", "Line Total", ""].map((column) => <th key={column} className="px-4 py-4">{column}</th>)}</tr>
                 </thead>
                 <tbody className="divide-y divide-[#DCE0E8]">
                   {lineItems.map((item) => (
                     <tr key={item.id}>
                       <td className="px-4 py-4">
-                        <label className="sr-only" htmlFor={`product-${item.id}`}>Product or service</label>
-                        <select id={`product-${item.id}`} value={item.product} onChange={(event) => chooseProduct(item.id, event.target.value)} className="h-10 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm font-semibold outline-none focus:border-[#1117E8]">
-                          {productRows.map(([name]) => <option key={name} value={name}>{name}</option>)}
+                        <select value={item.productId} onChange={(event) => chooseProduct(item.id, event.target.value)} disabled={productsLoading} className="h-10 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm font-semibold outline-none focus:border-[#1117E8]">
+                          <option value="">Custom item</option>
+                          {products.map((product) => <option key={product.id} value={product.id}>{product.name}</option>)}
                         </select>
                       </td>
-                      <td className="px-4 py-4"><input aria-label={`Quantity for ${item.product}`} type="number" min="1" value={item.quantity} onChange={(event) => updateItem(item.id, { quantity: Number(event.target.value) || 1 })} className="h-10 w-20 rounded-lg border border-[#C5C4DA] px-3 text-sm outline-none focus:border-[#1117E8]" /></td>
-                      <td className="px-4 py-4"><input aria-label={`Rate for ${item.product}`} type="number" min="0" value={item.rate} onChange={(event) => updateItem(item.id, { rate: Number(event.target.value) || 0 })} className="h-10 w-28 rounded-lg border border-[#C5C4DA] px-3 text-sm outline-none focus:border-[#1117E8]" /></td>
-                      <td className="px-4 py-4"><input aria-label={`VAT for ${item.product}`} type="number" min="0" value={item.vatRate} onChange={(event) => updateItem(item.id, { vatRate: Number(event.target.value) || 0 })} className="h-10 w-20 rounded-lg border border-[#C5C4DA] px-3 text-sm outline-none focus:border-[#1117E8]" /></td>
-                      <td className="px-4 py-4"><input aria-label={`Discount for ${item.product}`} type="number" min="0" value={item.discount} onChange={(event) => updateItem(item.id, { discount: Number(event.target.value) || 0 })} className="h-10 w-24 rounded-lg border border-[#C5C4DA] px-3 text-sm outline-none focus:border-[#1117E8]" /></td>
-                      <td className="px-4 py-4 font-bold">{money.format(lineTotal(item))}</td>
-                      <td className="px-4 py-4 text-red-600"><button type="button" onClick={() => { setLineItems((current) => current.filter(({ id }) => id !== item.id)); notifyDashboard(`${item.product} removed`); }} aria-label={`Remove ${item.product}`} className="rounded-lg p-2 hover:bg-red-50"><Trash2 className="h-4 w-4" /></button></td>
+                      <td className="px-4 py-4"><input value={item.description} onChange={(event) => updateItem(item.id, { description: event.target.value })} className="h-10 w-full rounded-lg border border-[#C5C4DA] px-3 text-sm outline-none focus:border-[#1117E8]" /></td>
+                      <td className="px-4 py-4"><input aria-label={`Quantity for ${item.description}`} type="number" min="1" value={item.quantity} onChange={(event) => updateItem(item.id, { quantity: Number(event.target.value) || 1 })} className="h-10 w-20 rounded-lg border border-[#C5C4DA] px-3 text-sm outline-none focus:border-[#1117E8]" /></td>
+                      <td className="px-4 py-4"><input aria-label={`Rate for ${item.description}`} type="number" min="0" value={item.rate} onChange={(event) => updateItem(item.id, { rate: Number(event.target.value) || 0 })} className="h-10 w-28 rounded-lg border border-[#C5C4DA] px-3 text-sm outline-none focus:border-[#1117E8]" /></td>
+                      <td className="px-4 py-4"><input aria-label={`VAT for ${item.description}`} type="number" min="0" value={item.vatRate} onChange={(event) => updateItem(item.id, { vatRate: Number(event.target.value) || 0 })} className="h-10 w-20 rounded-lg border border-[#C5C4DA] px-3 text-sm outline-none focus:border-[#1117E8]" /></td>
+                      <td className="px-4 py-4 font-bold"><CurrencyAmount amount={lineTotal(item)} /></td>
+                      <td className="px-4 py-4 text-red-600"><button type="button" onClick={() => setLineItems((current) => current.filter(({ id }) => id !== item.id))} aria-label={`Remove ${item.description}`} className="rounded-lg p-2 hover:bg-red-50"><Trash2 className="h-4 w-4" /></button></td>
                     </tr>
                   ))}
                 </tbody>
@@ -150,9 +188,14 @@ function SalesInvoiceBuilder() {
           </Card>
 
           <Card className="p-6">
-            <label className="block text-sm font-bold text-[#454557]">Invoice Notes
-              <textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={4} className="mt-2 w-full resize-none rounded-lg border border-[#C5C4DA] bg-white px-3 py-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]" />
-            </label>
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="block text-sm font-bold text-[#454557]">Discount Amount
+                <input type="number" min="0" value={discountAmount} onChange={(event) => setDiscountAmount(Number(event.target.value) || 0)} className="mt-2 h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]" />
+              </label>
+              <label className="block text-sm font-bold text-[#454557] md:col-span-2">Invoice Notes
+                <textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={4} className="mt-2 w-full resize-none rounded-lg border border-[#C5C4DA] bg-white px-3 py-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]" />
+              </label>
+            </div>
           </Card>
         </div>
 
@@ -160,15 +203,15 @@ function SalesInvoiceBuilder() {
           <Card className="p-6">
             <h2 className="text-xl font-bold">Invoice Summary</h2>
             <div className="mt-5 space-y-3 text-sm">
-              <div className="flex justify-between gap-3"><span className="text-[#454557]">Customer</span><b className="text-right">{customer}</b></div>
-              <div className="flex justify-between gap-3"><span className="text-[#454557]">Subtotal</span><b>{money.format(subtotal)}</b></div>
-              <div className="flex justify-between gap-3"><span className="text-[#454557]">Discount</span><b>-{money.format(discount)}</b></div>
-              <div className="flex justify-between gap-3"><span className="text-[#454557]">VAT</span><b>{money.format(vat)}</b></div>
-              <div className="flex justify-between gap-3 border-t border-[#C5C4DA] pt-4 text-2xl font-extrabold text-[#0001B1]"><span>Total</span><span>{money.format(total)}</span></div>
+              <div className="flex justify-between gap-3"><span className="text-[#454557]">Customer</span><b className="text-right">{selectedCustomer?.name ?? "Select customer"}</b></div>
+              <div className="flex justify-between gap-3"><span className="text-[#454557]">Subtotal</span><b><CurrencyAmount amount={subtotal} /></b></div>
+              <div className="flex justify-between gap-3"><span className="text-[#454557]">Discount</span><b>-<CurrencyAmount amount={discountAmount} /></b></div>
+              <div className="flex justify-between gap-3"><span className="text-[#454557]">VAT</span><b><CurrencyAmount amount={vat} /></b></div>
+              <div className="flex justify-between gap-3 border-t border-[#C5C4DA] pt-4 text-2xl font-extrabold text-[#0001B1]"><span>Total</span><span><CurrencyAmount amount={total} /></span></div>
             </div>
             <div className="mt-6 grid gap-3">
-              <Button variant="secondary" onClick={() => notifyDashboard(`${invoiceNumber} saved as draft`)}>Save Draft</Button>
-              <Button onClick={() => notifyDashboard(`${invoiceNumber} created for ${customer}`)}>Create Invoice</Button>
+              <Button variant="secondary" href="/dashboard/invoices/sales">Cancel</Button>
+              <Button onClick={saveInvoice}>{saving ? "Creating..." : "Create Invoice"}</Button>
             </div>
           </Card>
           <Card className="bg-[#EAEDFF] p-5">

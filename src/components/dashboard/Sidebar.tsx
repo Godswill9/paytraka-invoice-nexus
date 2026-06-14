@@ -54,7 +54,6 @@ export function Sidebar({ open, setOpen }: { open: boolean; setOpen: (open: bool
   const router = useRouter();
   const logout = async () => {
     resetOnboardingState();
-    window.localStorage.removeItem("paytraka_user");
     await apiLogout();
     router.push("/login");
   };

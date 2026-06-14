@@ -186,14 +186,6 @@ export function saveOnboardingState(update: OnboardingStateUpdate): OnboardingSt
 
   if (typeof window !== "undefined") {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    window.localStorage.setItem(
-      "paytraka_user",
-      JSON.stringify({
-        name: `${next.signup.firstName} ${next.signup.lastName}`.trim() || "PayTraka User",
-        email: next.signup.workEmail || next.businessDetails.businessEmail,
-        companyName: next.signup.companyName || next.businessDetails.businessName,
-      }),
-    );
   }
 
   return next;
