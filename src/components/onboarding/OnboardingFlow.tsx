@@ -63,7 +63,7 @@ type SidebarConfig = {
 };
 
 type SignupField = {
-  name: "firstName" | "lastName" | "workEmail" | "phoneNumber" | "companyName";
+  name: "firstName" | "lastName" | "workEmail" | "phoneNumber" | "companyName" | "tradingName";
   label: string;
   placeholder: string;
   icon: React.ElementType;
@@ -161,6 +161,7 @@ const signupFields: SignupField[] = [
   { name: "workEmail", label: "Work Email", placeholder: "jane@company.com", icon: Mail },
   { name: "phoneNumber", label: "Phone Number", placeholder: "+234 800 000 0000", icon: Phone },
   { name: "companyName", label: "Company Name", placeholder: "Enterprise Ltd.", icon: Building2 },
+  { name: "tradingName", label: "Trading Name", placeholder: "Optional business alias", icon: Building2 },
 ];
 
 function AuthOnboardingLayout({ kind, children }: { kind: PageKind; children: React.ReactNode }) {
@@ -379,6 +380,7 @@ export function SignupPage() {
         password: form.password,
         phone: form.phoneNumber,
         company_name: form.companyName,
+        trading_name: form.tradingName || undefined,
       });
       const signup: SignupData = {
         userId: response.data.user_id ?? response.data.user?.id ?? "",
@@ -387,6 +389,7 @@ export function SignupPage() {
         workEmail: form.workEmail,
         phoneNumber: form.phoneNumber,
         companyName: form.companyName,
+        tradingName: form.tradingName,
         emailVerified: false,
       };
       save({ signup, currentStep: "verify-email", verificationCode: "" });
@@ -471,11 +474,13 @@ export function LoginPage() {
           workEmail: email,
           firstName: user.first_name ?? "Admin",
           lastName: user.last_name ?? "User",
-          companyName: "",
+          companyName: user.company_name ?? "",
+          tradingName: user.trading_name ?? "",
           emailVerified: true,
         },
         businessDetails: {
-          businessName: "",
+          businessName: user.company_name ?? "",
+          tradingName: user.trading_name ?? "",
           businessEmail: email,
           contactPerson: `${user.first_name ?? "Admin"} ${user.last_name ?? "User"}`.trim(),
         },

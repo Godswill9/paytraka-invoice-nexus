@@ -9,6 +9,7 @@ export type SignupData = {
   workEmail: string;
   phoneNumber: string;
   companyName: string;
+  tradingName: string;
   emailVerified: boolean;
 };
 
@@ -95,6 +96,7 @@ export const defaultOnboardingState: OnboardingState = {
     workEmail: "",
     phoneNumber: "",
     companyName: "",
+    tradingName: "",
     emailVerified: false,
   },
   businessDetails: {

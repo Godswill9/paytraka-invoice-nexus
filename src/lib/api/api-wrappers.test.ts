@@ -61,6 +61,7 @@ describe("auth API wrapper", () => {
       password: "Test@1234",
       phone: "08012345678",
       company_name: "Ada Ltd",
+      trading_name: "Ada Ventures",
     };
     clientMocks.publicApiClient.post.mockResolvedValue(axiosResponse(apiResponse({ user_id: "user-1" })));
 

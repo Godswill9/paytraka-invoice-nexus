@@ -118,7 +118,7 @@ function requestWithNode(upstreamUrl: URL, method: string, headers: Headers, bod
       response.on("end", () => {
         resolve(new Response(Buffer.concat(chunks), {
           status: response.statusCode ?? 502,
-          headers: response.headers as HeadersInit,
+          headers: normalizeNodeResponseHeaders(response.headers),
         }));
       });
     });
@@ -127,4 +127,18 @@ function requestWithNode(upstreamUrl: URL, method: string, headers: Headers, bod
     if (body) request.write(body);
     request.end();
   });
+}
+
+function normalizeNodeResponseHeaders(headers: http.IncomingHttpHeaders) {
+  const normalized = new Headers();
+  Object.entries(headers).forEach(([key, value]) => {
+    if (typeof value === "string") {
+      normalized.set(key, value);
+      return;
+    }
+    if (Array.isArray(value)) {
+      value.forEach((item) => normalized.append(key, item));
+    }
+  });
+  return normalized;
 }
