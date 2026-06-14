@@ -72,6 +72,7 @@ export function ReceiptsPage() {
         }))}
         footer={loading ? "Loading API records..." : `Showing ${receipts.length} of ${pagination?.total ?? receipts.length} receipts`}
         footerActions={<Pagination pagination={pagination} onPageChange={pager.setPage} />}
+        loading={loading}
       />
       <BottomInsight title="Payment Reconciliation Health" asideTitle="Tax Compliance Tip" />
     </>

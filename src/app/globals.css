@@ -90,6 +90,57 @@ body {
   }
 }
 
+@keyframes skeletonShimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes routeProgress {
+  0% {
+    transform: translateX(-100%) scaleX(0.35);
+  }
+  45% {
+    transform: translateX(-10%) scaleX(0.75);
+  }
+  100% {
+    transform: translateX(100%) scaleX(0.35);
+  }
+}
+
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), transparent);
+  animation: skeletonShimmer 1.35s ease-in-out infinite;
+}
+
+.dark .skeleton-shimmer::after,
+.dashboard-theme .skeleton-shimmer::after,
+.onboarding-theme .skeleton-shimmer::after {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.48), transparent);
+}
+
+.route-progress {
+  width: 45%;
+  transform-origin: left center;
+  animation: routeProgress 1.05s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer::after,
+  .route-progress {
+    animation: none;
+  }
+}
+
 .reveal-up {
   animation: fadeUp 0.7s ease both;
 }

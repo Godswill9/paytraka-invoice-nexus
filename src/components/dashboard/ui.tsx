@@ -76,6 +76,53 @@ export function Card({ children, className = "", ...props }: React.HTMLAttribute
   return <section className={`min-w-0 rounded-2xl border border-[#C5C4DA] bg-white ${className}`} {...props}>{children}</section>;
 }
 
+export function SkeletonBlock({ className = "" }: { className?: string }) {
+  return <span aria-hidden="true" className={`skeleton-shimmer block rounded-lg bg-[#E6EAF2] ${className}`} />;
+}
+
+export function DashboardPageSkeleton({ title = "Loading dashboard" }: { title?: string }) {
+  return (
+    <div className="space-y-6" role="status" aria-label={title}>
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div className="w-full max-w-xl space-y-3">
+          <SkeletonBlock className="h-4 w-28" />
+          <SkeletonBlock className="h-9 w-3/4 max-w-md" />
+          <SkeletonBlock className="h-4 w-full" />
+        </div>
+        <SkeletonBlock className="h-11 w-44" />
+      </div>
+      <div className="grid gap-5 md:grid-cols-3 xl:grid-cols-4">
+        {[0, 1, 2, 3].map((item) => (
+          <Card key={item} className="p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div className="w-full space-y-4">
+                <SkeletonBlock className="h-4 w-24" />
+                <SkeletonBlock className="h-8 w-32" />
+                <SkeletonBlock className="h-4 w-28" />
+              </div>
+              <SkeletonBlock className="h-11 w-11 rounded-xl" />
+            </div>
+          </Card>
+        ))}
+      </div>
+      <Card className="overflow-hidden">
+        <div className="flex min-h-16 items-center justify-between border-b border-[#C5C4DA] px-5">
+          <SkeletonBlock className="h-5 w-40" />
+          <SkeletonBlock className="h-9 w-24" />
+        </div>
+        <div className="space-y-0">
+          {[0, 1, 2, 3, 4].map((row) => (
+            <div key={row} className="grid grid-cols-3 gap-5 border-b border-[#DCE0E8] px-5 py-5 md:grid-cols-6">
+              {[0, 1, 2, 3, 4, 5].map((cell) => <SkeletonBlock key={cell} className="h-4 w-full" />)}
+            </div>
+          ))}
+        </div>
+      </Card>
+      <span className="sr-only">{title}</span>
+    </div>
+  );
+}
+
 export function Button({ children, variant = "primary", className = "", href, type = "button", onClick, disabled = false }: { children: React.ReactNode; variant?: "primary" | "secondary" | "ghost" | "danger"; className?: string; href?: string; type?: "button" | "submit"; onClick?: () => void; disabled?: boolean }) {
   const classes = {
     primary: "bg-[#1117E8] text-white shadow-[0_12px_28px_rgba(17,23,232,0.2)] hover:bg-[#0001B1]",
@@ -131,7 +178,9 @@ export function ComplianceAlert({ title, text, badge, tone = "danger", action }:
   );
 }
 
-export function DataTable({ title, columns, rows, footer = "Showing 1 to 4 records", actions, footerActions }: { title: string; columns: string[]; rows: TableRow[]; footer?: string; actions?: React.ReactNode; footerActions?: React.ReactNode }) {
+export function DataTable({ title, columns, rows, footer = "Showing 1 to 4 records", actions, footerActions, loading = false }: { title: string; columns: string[]; rows: TableRow[]; footer?: string; actions?: React.ReactNode; footerActions?: React.ReactNode; loading?: boolean }) {
+  const skeletonRows = Array.from({ length: 5 }, (_, rowIndex) => rowIndex);
+
   return (
     <Card className="overflow-hidden">
       <div className="flex min-h-16 items-center justify-between gap-4 border-b border-[#C5C4DA] px-5">
@@ -144,7 +193,15 @@ export function DataTable({ title, columns, rows, footer = "Showing 1 to 4 recor
             <tr>{columns.map((column) => <th key={column} scope="col" className="px-5 py-4 font-bold">{column}</th>)}</tr>
           </thead>
           <tbody className="divide-y divide-[#DCE0E8]">
-            {rows.map((row, index) => <tr key={index} className="bg-white">{columns.map((column) => <td key={column} className="px-5 py-5 align-middle text-sm">{row[column]}</td>)}</tr>)}
+            {loading ? skeletonRows.map((row) => (
+              <tr key={row} className="bg-white">
+                {columns.map((column, index) => (
+                  <td key={column} className="px-5 py-5 align-middle text-sm">
+                    <SkeletonBlock className={`h-4 ${index === columns.length - 1 ? "w-24" : index % 3 === 0 ? "w-32" : "w-full"}`} />
+                  </td>
+                ))}
+              </tr>
+            )) : rows.map((row, index) => <tr key={index} className="bg-white">{columns.map((column) => <td key={column} className="px-5 py-5 align-middle text-sm">{row[column]}</td>)}</tr>)}
           </tbody>
         </table>
       </div>

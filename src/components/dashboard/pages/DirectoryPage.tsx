@@ -134,6 +134,7 @@ function DirectoryPage({ type }: { type: "customers" | "suppliers" }) {
         }))}
         footer={state.loading ? "Loading API records..." : `Showing ${visibleCount} of ${total} ${isCustomers ? "customers" : "suppliers"}`}
         footerActions={<Pagination pagination={state.pagination} onPageChange={state.pager.setPage} />}
+        loading={state.loading}
       />
     </>
   );

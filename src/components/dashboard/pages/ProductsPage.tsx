@@ -90,6 +90,7 @@ export function ProductsPage() {
         }))}
         footer={loading ? "Loading API records..." : `Showing ${filteredProducts.length} of ${pagination?.total ?? products.length} items`}
         footerActions={<Pagination pagination={pagination} onPageChange={pager.setPage} />}
+        loading={loading}
       />
       <BottomInsight title="Streamline your FIRS Compliance" asideTitle="Need Assistance?" />
     </>
