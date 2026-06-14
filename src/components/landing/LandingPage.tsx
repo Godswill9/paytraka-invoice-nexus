@@ -276,9 +276,7 @@ function HeroSection() {
     <section className="overflow-hidden border-b border-[#D7DEE8] bg-[radial-gradient(circle_at_78%_18%,rgba(218,222,253,0.9)_0,rgba(247,249,251,0)_32%),linear-gradient(180deg,#F7F9FB_0%,#FFFFFF_100%)] dark:bg-[radial-gradient(circle_at_78%_18%,rgba(63,92,255,0.22)_0,rgba(11,16,32,0)_32%),linear-gradient(180deg,#080D18_0%,#0B1020_100%)]">
       <div className="mx-auto grid min-h-[calc(100svh-5rem)] max-w-7xl items-center gap-10 px-5 py-12 md:px-8 lg:grid-cols-[0.95fr_minmax(0,1.05fr)] lg:py-10">
         <div className="reveal-up min-w-0">
-          <span className="inline-flex rounded-full border border-[#C5C4DA] bg-[#DADEFD]/70 px-4 py-2 text-sm font-semibold text-[#0001B1]">
-            E-Invoicing Readiness Platform for Nigerian Businesses
-          </span>
+        
           <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-tight tracking-normal text-[#0001B1] md:text-5xl xl:text-6xl">
             Create, Validate & Submit E-Invoices with Confidence
           </h1>
