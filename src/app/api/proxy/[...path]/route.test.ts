@@ -37,6 +37,47 @@ describe("/api/proxy/[...path] route", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("allows public auth endpoints without an existing session cookie", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({
+      success: true,
+      data: { accessToken: "access-token", refreshToken: "refresh-token", user: { id: "user-1" } },
+    }), { status: 200, headers: { "Content-Type": "application/json" } }));
+    const body = JSON.stringify({ email: "ada@example.com", password: "Test@1234" });
+
+    const response = await POST(request("http://localhost/api/proxy/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+    }), context(["auth", "login"]));
+
+    expect(response.status).toBe(200);
+    const [url, init] = fetchMock.mock.calls[0] as [URL, RequestInit];
+    expect(url.toString()).toBe("https://paytraka-api.domain-plusltd.com/api/auth/login");
+    expect((init.headers as Headers).get("Authorization")).toBeNull();
+    expect(init.body).toBe(body);
+  });
+
+  it("allows OTP resend without an existing session cookie", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({
+      success: true,
+      message: "A new verification code has been sent.",
+      data: null,
+    }), { status: 200, headers: { "Content-Type": "application/json" } }));
+    const body = JSON.stringify({ user_id: "user-1" });
+
+    const response = await POST(request("http://localhost/api/proxy/auth/resend-otp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+    }), context(["auth", "resend-otp"]));
+
+    expect(response.status).toBe(200);
+    const [url, init] = fetchMock.mock.calls[0] as [URL, RequestInit];
+    expect(url.toString()).toBe("https://paytraka-api.domain-plusltd.com/api/auth/resend-otp");
+    expect((init.headers as Headers).get("Authorization")).toBeNull();
+    expect(init.body).toBe(body);
+  });
+
   it("rejects requests with a missing proxy path", async () => {
     cookieValues.set("paytraka_access_token", "access-token");
     const fetchMock = vi.spyOn(globalThis, "fetch");
@@ -131,14 +172,15 @@ describe("/api/proxy/[...path] route", () => {
   });
 
   it("returns a deterministic gateway error when the upstream API is unavailable", async () => {
-    cookieValues.set("paytraka_access_token", "access-token");
-    vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("TLS failure"));
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("ENOTFOUND"));
 
-    const response = await DELETE(request("http://localhost/api/proxy/customers/customer-1", {
-      method: "DELETE",
-    }), context(["customers", "customer-1"]));
+    const response = await POST(request("http://localhost/api/proxy/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "ada@example.com" }),
+    }), context(["auth", "register"]));
 
     expect(response.status).toBe(502);
-    await expect(response.json()).resolves.toEqual({ success: false, message: "Unable to reach PayTraka API" });
+    await expect(response.json()).resolves.toEqual({ success: false, message: "We could not reach PayTraka right now. Check your connection and try again." });
   });
 });

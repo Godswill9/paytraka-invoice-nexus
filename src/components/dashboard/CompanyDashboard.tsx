@@ -5,6 +5,7 @@ import { CreateCustomerPage } from "./pages/CreateCustomerPage";
 import { CreateInvoicePage } from "./pages/CreateInvoicePage";
 import { CustomersPage, SuppliersPage } from "./pages/DirectoryPage";
 import { DashboardHome } from "./pages/DashboardHome";
+import { KycPage } from "./pages/KycPage";
 import { PaymentLinksPage } from "./pages/PaymentLinksPage";
 import { ProductsPage } from "./pages/ProductsPage";
 import { PurchaseInvoicesPage } from "./pages/PurchaseInvoicesPage";
@@ -39,6 +40,7 @@ const routeMap: Record<string, DashboardKind> = {
   "compliance/validate": "compliance",
   "compliance/submit": "compliance-submit",
   "compliance/status": "compliance-status",
+  kyc: "kyc",
   templates: "templates",
   subscription: "subscription",
   support: "support",
@@ -81,6 +83,8 @@ function DashboardPage({ kind }: { kind: DashboardKind }) {
       return <SubmitCompliancePage />;
     case "compliance-status":
       return <SubmissionStatusPage />;
+    case "kyc":
+      return <KycPage />;
     case "templates":
       return <TemplatesPage />;
     case "subscription":

@@ -61,12 +61,59 @@ describe("auth API wrapper", () => {
       password: "Test@1234",
       phone: "08012345678",
       company_name: "Ada Ltd",
+      trading_name: "Ada Ventures",
     };
     clientMocks.publicApiClient.post.mockResolvedValue(axiosResponse(apiResponse({ user_id: "user-1" })));
 
     await expect(authApi.register(payload)).resolves.toEqual(apiResponse({ user_id: "user-1" }));
 
     expect(clientMocks.publicApiClient.post).toHaveBeenCalledWith("/auth/register", payload);
+  });
+
+  it("normalizes registered user ids from backend response variants", () => {
+    expect(authApi.getRegisteredUserId({ userId: "camel-id" })).toBe("camel-id");
+    expect(authApi.getRegisteredUserId({ user_id: "snake-id" })).toBe("snake-id");
+    expect(authApi.getRegisteredUserId({ user: { ...user, id: "nested-id" } })).toBe("nested-id");
+    expect(authApi.getRegisteredUserId({})).toBe("");
+  });
+
+  it("propagates duplicate-account signup failures without creating a session", async () => {
+    clientMocks.publicApiClient.post.mockRejectedValue(new Error("Account already exists"));
+
+    await expect(authApi.register({
+      first_name: "Ada",
+      last_name: "Lovelace",
+      email: "ada@example.com",
+      password: "Test@1234",
+      phone: "08012345678",
+      company_name: "Ada Ltd",
+    })).rejects.toThrow("Account already exists");
+
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("successfully signs up by registering without creating a token session before OTP", async () => {
+    const registerResponse = apiResponse({ userId: "user-1" });
+    clientMocks.publicApiClient.post.mockResolvedValue(axiosResponse(registerResponse));
+
+    await expect(authApi.register({
+      first_name: "Grace",
+      last_name: "Hopper",
+      email: "grace@example.com",
+      password: "Test@1234",
+      phone: "08012345678",
+      company_name: "Grace Ltd",
+    })).resolves.toEqual(registerResponse);
+
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("resends signup OTPs with the registered user id", async () => {
+    clientMocks.publicApiClient.post.mockResolvedValue(axiosResponse(apiResponse(null)));
+
+    await expect(authApi.resendOtp("user-1")).resolves.toEqual(apiResponse(null));
+
+    expect(clientMocks.publicApiClient.post).toHaveBeenCalledWith("/auth/resend-otp", { user_id: "user-1" });
   });
 
   it("verifies OTP and stores returned tokens in the session route", async () => {

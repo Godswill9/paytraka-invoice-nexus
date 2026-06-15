@@ -79,6 +79,7 @@ export function SalesInvoicesPage() {
         })}
         footer={loading ? "Loading API records..." : `Showing ${invoices.length} of ${pagination?.total ?? invoices.length} invoices`}
         footerActions={<Pagination pagination={pagination} onPageChange={pager.setPage} />}
+        loading={loading}
       />
     </>
   );

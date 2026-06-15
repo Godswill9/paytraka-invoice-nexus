@@ -41,8 +41,10 @@ import {
   saveOnboardingState,
 } from "@/lib/onboarding-store";
 import { getApiErrorMessage } from "@/lib/api/client";
-import { getMe, login, register, verifyOtp } from "@/lib/api/auth";
+import { getMe, login, register, resendOtp, verifyOtp } from "@/lib/api/auth";
 import { submitKyc } from "@/lib/api/companies";
+import { getAuthSuccessRedirect } from "@/lib/auth-flow";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 type PageKind = "signup" | "verify" | "business" | "tax" | "bank" | "preferences" | "review" | "dashboard";
 
@@ -166,7 +168,7 @@ function AuthOnboardingLayout({ kind, children }: { kind: PageKind; children: Re
   const config = sidebarConfigs[kind];
 
   return (
-    <div className="min-h-screen bg-[#F5F6FA] lg:grid lg:h-screen lg:grid-cols-[42%_58%] lg:overflow-hidden">
+    <div className="onboarding-theme min-h-screen bg-[#F5F6FA] lg:grid lg:h-screen lg:grid-cols-[42%_58%] lg:overflow-hidden">
       <aside className="relative hidden overflow-hidden bg-[#0001B1] px-10 py-9 text-white lg:flex lg:h-screen lg:flex-col">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.18),transparent_30%),radial-gradient(circle_at_80%_70%,rgba(17,23,232,0.9),transparent_35%)]" />
         <div className="relative z-10 my-auto max-w-xl">
@@ -202,13 +204,45 @@ function AuthOnboardingLayout({ kind, children }: { kind: PageKind; children: Re
       <main className="min-h-screen px-5 py-8 md:px-10 lg:h-screen lg:min-h-0 lg:overflow-y-auto lg:px-10">
         <div className="mx-auto mb-4 flex max-w-6xl items-center justify-between">
           <Link href="/" aria-label="Go to PayTraka landing page" className="inline-flex focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1117E8]">
-            <Image src="/paytraka_logo/paytraka-logo-transparent.png" alt="PayTraka" width={168} height={48} className="h-9 w-auto object-contain" priority />
+            <Image src="/paytraka_logo/paytraka-logo-transparent.png" alt="PayTraka" width={168} height={48} className="h-8 w-auto max-w-[132px] object-contain sm:h-9 sm:max-w-none" priority />
           </Link>
-          <Link href="/" className="text-sm font-bold text-[#0001B1] lg:hidden">Home</Link>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <Link href="/" className="hidden text-sm font-bold text-[#0001B1] sm:inline lg:hidden">Home</Link>
+          </div>
         </div>
-        {children}
+        <div className="step-shell">{children}</div>
       </main>
     </div>
+  );
+}
+
+function OnboardingSkeleton({ kind = "business", label = "Loading onboarding" }: { kind?: PageKind; label?: string }) {
+  return (
+    <AuthOnboardingLayout kind={kind}>
+      <div className="mx-auto max-w-6xl py-8" role="status" aria-label={label}>
+        <div className="mb-12">
+          <div className="skeleton-shimmer h-4 w-28 rounded bg-[#E6EAF2]" />
+          <div className="skeleton-shimmer mt-3 h-10 w-3/4 max-w-xl rounded-lg bg-[#E6EAF2]" />
+          <div className="mt-5 h-2 overflow-hidden rounded-full bg-[#DFE3E8]">
+            <div className="route-progress h-full bg-[#1117E8]" />
+          </div>
+        </div>
+        <div className="grid gap-5 md:grid-cols-2">
+          {[0, 1, 2, 3].map((item) => (
+            <div key={item} className="rounded-2xl border border-[#C5C4DA] bg-white p-6">
+              <div className="skeleton-shimmer h-6 w-44 rounded bg-[#E6EAF2]" />
+              <div className="mt-6 space-y-4">
+                <div className="skeleton-shimmer h-4 w-full rounded bg-[#E6EAF2]" />
+                <div className="skeleton-shimmer h-4 w-5/6 rounded bg-[#E6EAF2]" />
+                <div className="skeleton-shimmer h-4 w-2/3 rounded bg-[#E6EAF2]" />
+              </div>
+            </div>
+          ))}
+        </div>
+        <span className="sr-only">{label}</span>
+      </div>
+    </AuthOnboardingLayout>
   );
 }
 
@@ -223,7 +257,7 @@ function ProgressHeader({ step, title, percent }: { step: string; title: string;
         <p className="hidden text-lg font-bold text-[#454557] sm:block">{percent}% Complete</p>
       </div>
       <div className="mt-5 h-2 overflow-hidden rounded-full bg-[#DFE3E8]">
-        <div className="h-full rounded-full bg-[#1117E8] transition-all duration-500" style={{ width: `${percent}%` }} />
+        <div className="progress-glow h-full rounded-full bg-[#1117E8] transition-all duration-500 ease-out" style={{ width: `${percent}%` }} />
       </div>
     </div>
   );
@@ -239,7 +273,7 @@ function Field({ label, error, children }: { label: string; error?: string; chil
   );
 }
 
-const inputClass = "h-12 w-full rounded-xl border border-[#C5C4DA] bg-white px-4 text-base text-[#191C1E] outline-none transition placeholder:text-[#9CA0AA] focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]";
+const inputClass = "h-12 w-full rounded-xl border border-[#C5C4DA] bg-white px-4 text-base text-[#191C1E] outline-none transition placeholder:text-[#9CA0AA] hover:border-[#1117E8]/60 focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]";
 const selectClass = `${inputClass} appearance-none pr-10`;
 
 function StepActions({ backHref, nextLabel = "Continue", disabled = false }: { backHref: string; nextLabel?: string; disabled?: boolean }) {
@@ -287,9 +321,21 @@ function useOnboardingGuard(kind: "auth" | "verify" | "onboarding" | "dashboard"
       review: "/onboarding/review",
     } as const;
     const stepOrder = ["business-details", "tax-profile", "bank-details", "preferences", "review"] as const;
-    if (kind === "auth" && state.completed) {
-      router.replace("/dashboard");
-      return;
+    if (kind === "auth") {
+      let cancelled = false;
+      fetch("/api/auth/session", { cache: "no-store" })
+        .then((response) => response.json())
+        .then((session) => {
+          if (cancelled) return;
+          if (session?.authenticated) router.replace("/dashboard");
+        })
+        .catch(() => {
+          // Stay on login/signup when the session check fails. Stale onboarding
+          // state must not bounce users away from auth pages.
+        });
+      return () => {
+        cancelled = true;
+      };
     }
     if (kind === "verify" && !state.signup.workEmail) {
       router.replace("/signup");
@@ -318,7 +364,7 @@ function useOnboardingGuard(kind: "auth" | "verify" | "onboarding" | "dashboard"
       }
     }
     if (kind === "dashboard" && !state.completed) {
-      router.replace(state.signup.emailVerified ? "/onboarding/business-details" : "/signup");
+      router.replace(state.signup.workEmail ? "/dashboard" : "/signup");
     }
   }, [kind, pathname, router]);
 }
@@ -357,7 +403,7 @@ export function SignupPage() {
     if (Object.keys(nextErrors).length) return;
     setSubmitting(true);
     try {
-      const response = await register({
+      await register({
         first_name: form.firstName,
         last_name: form.lastName,
         email: form.workEmail,
@@ -365,17 +411,38 @@ export function SignupPage() {
         phone: form.phoneNumber,
         company_name: form.companyName,
       });
+      await login(form.workEmail, form.password, {
+        first_name: form.firstName,
+        last_name: form.lastName,
+        email: form.workEmail,
+        company_name: form.companyName,
+        trading_name: form.companyName,
+        kyc_complete: false,
+      });
       const signup: SignupData = {
-        userId: response.data.user_id ?? response.data.user?.id ?? "",
+        userId: "",
         firstName: form.firstName,
         lastName: form.lastName,
         workEmail: form.workEmail,
         phoneNumber: form.phoneNumber,
         companyName: form.companyName,
-        emailVerified: false,
+        tradingName: "",
+        emailVerified: true,
       };
-      save({ signup, currentStep: "verify-email", verificationCode: "" });
-      router.push("/verify-email");
+      save({
+        signup,
+        currentStep: "complete",
+        completed: true,
+        verificationCode: "",
+        businessDetails: {
+          businessName: form.companyName,
+          tradingName: "",
+          businessEmail: form.workEmail,
+          contactPerson: `${form.firstName} ${form.lastName}`.trim(),
+          phoneNumber: form.phoneNumber,
+        },
+      });
+      router.push("/dashboard");
     } catch (requestError) {
       setErrors({ form: getApiErrorMessage(requestError, "Unable to create workspace.") });
     } finally {
@@ -388,7 +455,7 @@ export function SignupPage() {
       <form onSubmit={submit} className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-2xl flex-col justify-center py-5">
         <h1 className="text-3xl font-extrabold text-[#191C1E] md:text-4xl">Create your PayTraka workspace</h1>
         <p className="mt-3 text-base leading-7 text-[#454557]">Start managing invoices, payments, customers, reports, and compliance from one secure business dashboard.</p>
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
+        <div className="stagger-children mt-6 grid gap-4 md:grid-cols-2">
           {signupFields.map(({ name, label, placeholder, icon: Icon }) => (
             <Field key={name} label={label} error={errors[name]}>
               <div className="relative">
@@ -449,23 +516,28 @@ export function LoginPage() {
     try {
       const response = await login(email, password);
       const user = response.data.user;
+      const storedState = getOnboardingState();
+      const companyName = user.company_name ?? user.trading_name ?? storedState.signup.companyName ?? "";
+      const tradingName = user.trading_name ?? storedState.signup.tradingName ?? "";
       saveOnboardingState({
-        completed: Boolean(user.kyc_complete),
-        currentStep: user.kyc_complete ? "complete" : "business-details",
+        completed: true,
+        currentStep: "complete",
         signup: {
           workEmail: email,
           firstName: user.first_name ?? "Admin",
           lastName: user.last_name ?? "User",
-          companyName: "",
+          companyName,
+          tradingName,
           emailVerified: true,
         },
         businessDetails: {
-          businessName: "",
+          businessName: companyName,
+          tradingName,
           businessEmail: email,
           contactPerson: `${user.first_name ?? "Admin"} ${user.last_name ?? "User"}`.trim(),
         },
       });
-      router.push(user.kyc_complete ? "/dashboard" : "/onboarding/business-details");
+      router.push("/dashboard");
     } catch (requestError) {
       setError(getApiErrorMessage(requestError, "Unable to sign in."));
     } finally {
@@ -512,7 +584,9 @@ export function VerifyEmailPage() {
   const { state, save } = useOnboarding();
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [resending, setResending] = useState(false);
   const refs = useRef<Array<HTMLInputElement | null>>([]);
 
   useOnboardingGuard("verify");
@@ -538,14 +612,33 @@ export function VerifyEmailPage() {
     }
     setSubmitting(true);
     setError("");
+    setNotice("");
     try {
       const response = await verifyOtp(state.signup.userId, otp);
       save({ signup: { emailVerified: true }, currentStep: response.data.user.kyc_complete ? "complete" : "business-details", completed: Boolean(response.data.user.kyc_complete) });
-      router.push(response.data.user.kyc_complete ? "/dashboard" : "/onboarding/business-details");
+      router.push(getAuthSuccessRedirect(response.data.user));
     } catch (requestError) {
       setError(getApiErrorMessage(requestError, "Unable to verify OTP."));
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function resend() {
+    if (!state.signup.userId) {
+      setError("Registration session expired. Please create your workspace again.");
+      return;
+    }
+    setResending(true);
+    setError("");
+    setNotice("");
+    try {
+      const response = await resendOtp(state.signup.userId);
+      setNotice(response.message ?? "A new verification code has been sent.");
+    } catch (requestError) {
+      setError(getApiErrorMessage(requestError, "Unable to resend the verification code."));
+    } finally {
+      setResending(false);
     }
   }
 
@@ -555,7 +648,7 @@ export function VerifyEmailPage() {
         <span className="flex h-20 w-20 items-center justify-center rounded-2xl bg-[#DADEFD] text-[#1117E8]"><Mail size={36} /></span>
         <h1 className="mt-8 text-4xl font-extrabold text-[#191C1E]">Verify your email</h1>
         <p className="mt-4 max-w-2xl text-lg leading-7 text-[#454557]">We&apos;ve sent a 6-digit verification code to {state.signup.workEmail || "your email"}. Enter it below to continue.</p>
-        <div className="mt-10 grid grid-cols-6 gap-3 md:gap-5">
+        <div className="stagger-children mt-10 grid grid-cols-6 gap-3 md:gap-5">
           {code.map((value, index) => (
             <input
               key={index}
@@ -580,8 +673,9 @@ export function VerifyEmailPage() {
           ))}
         </div>
         {error ? <p className="mt-4 text-sm font-semibold text-red-600">{error}</p> : null}
+        {notice ? <p className="mt-4 text-sm font-semibold text-green-700">{notice}</p> : null}
         <button disabled={submitting} className="mt-10 h-16 rounded-xl bg-[#1117E8] text-xl font-bold text-white transition hover:bg-[#0001B1] disabled:opacity-60">{submitting ? "Verifying..." : "Verify & Continue"}</button>
-        <p className="mt-7 text-center text-lg text-[#454557]">Didn&apos;t receive a code? <button type="button" onClick={() => setError("Request a new OTP from the registration email flow.")} className="font-bold text-[#0001B1]">Resend</button></p>
+        <p className="mt-7 text-center text-lg text-[#454557]">Didn&apos;t receive a code? <button type="button" disabled={resending} onClick={resend} className="font-bold text-[#0001B1] disabled:opacity-60">{resending ? "Sending..." : "Resend"}</button></p>
       </form>
     </AuthOnboardingLayout>
   );
@@ -623,7 +717,7 @@ export function BusinessDetailsPage() {
     <AuthOnboardingLayout kind="business">
       <form onSubmit={submit} className="mx-auto max-w-5xl py-8">
         <ProgressHeader step="STEP 1 OF 5" title="Business Details" percent={20} />
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="stagger-children grid gap-6 md:grid-cols-2">
           <Field label="Business Name" error={errors.businessName}><input value={form.businessName} onChange={(e) => setForm({ ...form, businessName: e.target.value })} className={inputClass} placeholder="Legal registered name" /></Field>
           <Field label="Trading Name (Optional)"><input value={form.tradingName} onChange={(e) => setForm({ ...form, tradingName: e.target.value })} className={inputClass} placeholder="As seen by customers" /></Field>
           <Field label="Business Type" error={errors.businessType}><SelectField value={form.businessType} onChange={(businessType) => setForm({ ...form, businessType })} options={["Limited Liability Company", "Sole Proprietorship", "Partnership", "NGO", "Government Agency"]} placeholder="Select business type" /></Field>
@@ -668,7 +762,7 @@ export function TaxProfilePage() {
     <AuthOnboardingLayout kind="tax">
       <form onSubmit={submit} className="mx-auto max-w-5xl py-8">
         <ProgressHeader step="STEP 2 OF 5" title="Tax & Compliance Profile" percent={40} />
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="stagger-children grid gap-6 md:grid-cols-2">
           <Field label="TIN" error={errors.tin}><input value={form.tin} onChange={(e) => setForm({ ...form, tin: e.target.value })} className={inputClass} placeholder="Tax Identification Number" /></Field>
           <Field label="CAC/RC Number" error={errors.cacNumber}><input value={form.cacNumber} onChange={(e) => setForm({ ...form, cacNumber: e.target.value })} className={inputClass} placeholder="RC 0000000" /></Field>
           <Field label="VAT Registration Status" error={errors.vatStatus}><SelectField value={form.vatStatus} onChange={(vatStatus) => setForm({ ...form, vatStatus })} options={["Registered", "Not Registered", "Not Sure"]} placeholder="Select status" /></Field>
@@ -732,7 +826,7 @@ export function BankDetailsPage() {
       <form onSubmit={submit} className="mx-auto max-w-5xl py-10">
         <ProgressHeader step="STEP 3 OF 5" title="Bank details" percent={60} />
         <p className="-mt-6 mb-8 max-w-4xl text-lg leading-7 text-[#454557]">Configure where your payments will be received. This information will be used for automated invoicing and tax compliance.</p>
-        <div className="mt-8 grid gap-5 md:grid-cols-2">
+        <div className="stagger-children mt-8 grid gap-5 md:grid-cols-2">
           <Field label="Bank Name" error={errors.bankName}><SelectField value={form.bankName} onChange={(bankName) => setForm({ ...form, bankName })} options={banks} placeholder="Select Bank" /></Field>
           <Field label="Account Number" error={errors.accountNumber}><input value={form.accountNumber} onChange={(e) => setForm({ ...form, accountNumber: e.target.value.replace(/\D/g, "").slice(0, 10) })} className={inputClass} placeholder="10-digit Number" /></Field>
           <div className="md:col-span-2"><Field label="Account Name" error={errors.accountName}><input value={form.accountName} onChange={(e) => setForm({ ...form, accountName: e.target.value })} className={inputClass} placeholder="Full legal business name" /></Field></div>
@@ -798,7 +892,7 @@ export function PreferencesPage() {
           </section>
           <section>
             <h2 className="text-2xl font-bold text-[#191C1E]">Invoice Template</h2>
-            <div className="mt-8 grid max-w-sm grid-cols-2 gap-4">
+            <div className="stagger-children mt-8 grid max-w-sm grid-cols-2 gap-4">
               {templates.map((template) => (
                 <button key={template} type="button" onClick={() => setForm({ ...form, invoiceTemplate: template })} className={`rounded-xl border p-3 text-left font-bold transition ${form.invoiceTemplate === template ? "border-[#1117E8] bg-[#EEF1FF] text-[#0001B1] ring-2 ring-[#1117E8]" : "border-[#C5C4DA] bg-white text-[#191C1E]"}`}>
                   <span className="mb-3 flex h-20 items-center justify-center rounded-lg border border-dashed border-[#C5C4DA] bg-[#F7F9FB]">
@@ -835,7 +929,7 @@ export function ReviewPage() {
     ["Preferences", "/onboarding/preferences", [["Accent color", state.preferences.accentColor], ["Invoice template", state.preferences.invoiceTemplate], ["Payment link", state.bankDetails.generatePaymentLink ? "Enabled" : "Disabled"]]],
   ], [state]);
 
-  if (!ready) return null;
+  if (!ready) return <OnboardingSkeleton kind="review" label="Loading review" />;
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -877,9 +971,9 @@ export function ReviewPage() {
     <AuthOnboardingLayout kind="review">
       <form onSubmit={submit} className="mx-auto max-w-6xl py-8">
         <ProgressHeader step="STEP 5 OF 5" title="Review your setup" percent={100} />
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="stagger-children grid gap-5 md:grid-cols-2">
         {cards.map(([title, href, rows]) => (
-            <article key={title as string} className="rounded-2xl border border-[#C5C4DA] bg-white p-6">
+            <article key={title as string} className="interactive-card rounded-2xl border border-[#C5C4DA] bg-white p-6">
               <div className="flex items-center justify-between gap-4">
                 <h2 className="text-xl font-bold text-[#191C1E]">{title as string}</h2>
                 <Link href={href as string} className="font-bold text-[#0001B1]">Edit</Link>
@@ -909,7 +1003,7 @@ export function ReviewPage() {
 export function DashboardPage() {
   const { state, ready } = useOnboarding();
   useOnboardingGuard("dashboard");
-  if (!ready) return null;
+  if (!ready) return <OnboardingSkeleton kind="dashboard" label="Loading workspace summary" />;
 
   return (
     <AuthOnboardingLayout kind="dashboard">

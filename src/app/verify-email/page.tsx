@@ -1,5 +1,5 @@
-import { VerifyEmailPage } from "@/components/onboarding/OnboardingFlow";
+import { redirect } from "next/navigation";
 
 export default function VerifyEmail() {
-  return <VerifyEmailPage />;
+  redirect("/dashboard");
 }

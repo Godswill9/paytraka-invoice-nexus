@@ -1,5 +1,5 @@
 import apiClient, { publicApiClient } from "./client";
-import { ApiResponse, AuthTokens, AuthUser, LoginRequest, RegisterRequest, RegisterResponse, VerifyOtpRequest } from "@/types/api";
+import { ApiResponse, AuthTokens, AuthUser, LoginRequest, RegisterRequest, RegisterResponse, ResendOtpRequest, VerifyOtpRequest } from "@/types/api";
 
 async function saveSession(tokens: AuthTokens) {
   await fetch("/api/auth/session", {
@@ -14,6 +14,10 @@ export async function register(data: RegisterRequest) {
   return response.data;
 }
 
+export function getRegisteredUserId(data: RegisterResponse) {
+  return data.userId ?? data.user_id ?? data.user?.id ?? "";
+}
+
 export async function verifyOtp(userId: string, otp: string) {
   const payload: VerifyOtpRequest = { user_id: userId, otp };
   const response = await publicApiClient.post<ApiResponse<AuthTokens>>("/auth/verify-otp", payload);
@@ -21,10 +25,19 @@ export async function verifyOtp(userId: string, otp: string) {
   return response.data;
 }
 
-export async function login(email: string, password: string) {
+export async function resendOtp(userId: string) {
+  const payload: ResendOtpRequest = { user_id: userId };
+  const response = await publicApiClient.post<ApiResponse<null>>("/auth/resend-otp", payload);
+  return response.data;
+}
+
+export async function login(email: string, password: string, userPatch?: Partial<AuthUser>) {
   const payload: LoginRequest = { email, password };
   const response = await publicApiClient.post<ApiResponse<AuthTokens>>("/auth/login", payload);
-  await saveSession(response.data.data);
+  const session = userPatch
+    ? { ...response.data.data, user: { ...response.data.data.user, ...userPatch } }
+    : response.data.data;
+  await saveSession(session);
   return response.data;
 }
 

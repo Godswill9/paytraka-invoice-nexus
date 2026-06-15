@@ -152,10 +152,10 @@ Key backend requirements before replacing mock state:
 
 The current mock frontend does not require environment variables.
 
-For future browser-exposed values in Next.js, use the `NEXT_PUBLIC_` prefix:
+The PayTraka backend URL is used only by server-side route handlers. Do not expose it with `NEXT_PUBLIC_`; browser requests should go through the same-origin `/api/proxy` route to avoid mixed-content and CORS issues.
 
 ```bash
-NEXT_PUBLIC_API_BASE_URL=http://localhost:3000
+PAYTRAKA_API_BASE_URL=https://paytraka-api.domain-plusltd.com/api
 ```
 
 Do not expose secrets with `NEXT_PUBLIC_`.
