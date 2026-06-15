@@ -1,5 +1,5 @@
-import { TaxProfilePage } from "@/components/onboarding/OnboardingFlow";
+import { redirect } from "next/navigation";
 
 export default function TaxProfile() {
-  return <TaxProfilePage />;
+  redirect("/dashboard/kyc");
 }

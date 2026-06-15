@@ -1,5 +1,5 @@
-import { PreferencesPage } from "@/components/onboarding/OnboardingFlow";
+import { redirect } from "next/navigation";
 
 export default function Preferences() {
-  return <PreferencesPage />;
+  redirect("/dashboard/kyc");
 }

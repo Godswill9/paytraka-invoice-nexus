@@ -41,9 +41,9 @@ import {
   saveOnboardingState,
 } from "@/lib/onboarding-store";
 import { getApiErrorMessage } from "@/lib/api/client";
-import { getMe, getRegisteredUserId, login, register, resendOtp, verifyOtp } from "@/lib/api/auth";
+import { getMe, login, register, resendOtp, verifyOtp } from "@/lib/api/auth";
 import { submitKyc } from "@/lib/api/companies";
-import { getAuthPageRedirect, getAuthSuccessRedirect } from "@/lib/auth-flow";
+import { getAuthSuccessRedirect } from "@/lib/auth-flow";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 type PageKind = "signup" | "verify" | "business" | "tax" | "bank" | "preferences" | "review" | "dashboard";
@@ -64,7 +64,7 @@ type SidebarConfig = {
 };
 
 type SignupField = {
-  name: "firstName" | "lastName" | "workEmail" | "phoneNumber" | "companyName" | "tradingName";
+  name: "firstName" | "lastName" | "workEmail" | "phoneNumber" | "companyName";
   label: string;
   placeholder: string;
   icon: React.ElementType;
@@ -162,7 +162,6 @@ const signupFields: SignupField[] = [
   { name: "workEmail", label: "Work Email", placeholder: "jane@company.com", icon: Mail },
   { name: "phoneNumber", label: "Phone Number", placeholder: "+234 800 000 0000", icon: Phone },
   { name: "companyName", label: "Company Name", placeholder: "Enterprise Ltd.", icon: Building2 },
-  { name: "tradingName", label: "Trading Name", placeholder: "Optional business alias", icon: Building2 },
 ];
 
 function AuthOnboardingLayout({ kind, children }: { kind: PageKind; children: React.ReactNode }) {
@@ -323,14 +322,12 @@ function useOnboardingGuard(kind: "auth" | "verify" | "onboarding" | "dashboard"
     } as const;
     const stepOrder = ["business-details", "tax-profile", "bank-details", "preferences", "review"] as const;
     if (kind === "auth") {
-      if (!state.completed) return;
       let cancelled = false;
       fetch("/api/auth/session", { cache: "no-store" })
         .then((response) => response.json())
         .then((session) => {
           if (cancelled) return;
-          const redirect = getAuthPageRedirect(state, session);
-          if (redirect) router.replace(redirect);
+          if (session?.authenticated) router.replace("/dashboard");
         })
         .catch(() => {
           // Stay on login/signup when the session check fails. Stale onboarding
@@ -367,7 +364,7 @@ function useOnboardingGuard(kind: "auth" | "verify" | "onboarding" | "dashboard"
       }
     }
     if (kind === "dashboard" && !state.completed) {
-      router.replace(state.signup.emailVerified ? "/onboarding/business-details" : "/signup");
+      router.replace(state.signup.workEmail ? "/dashboard" : "/signup");
     }
   }, [kind, pathname, router]);
 }
@@ -406,27 +403,46 @@ export function SignupPage() {
     if (Object.keys(nextErrors).length) return;
     setSubmitting(true);
     try {
-      const response = await register({
+      await register({
         first_name: form.firstName,
         last_name: form.lastName,
         email: form.workEmail,
         password: form.password,
         phone: form.phoneNumber,
         company_name: form.companyName,
-        trading_name: form.tradingName || undefined,
+      });
+      await login(form.workEmail, form.password, {
+        first_name: form.firstName,
+        last_name: form.lastName,
+        email: form.workEmail,
+        company_name: form.companyName,
+        trading_name: form.companyName,
+        kyc_complete: false,
       });
       const signup: SignupData = {
-        userId: getRegisteredUserId(response.data),
+        userId: "",
         firstName: form.firstName,
         lastName: form.lastName,
         workEmail: form.workEmail,
         phoneNumber: form.phoneNumber,
         companyName: form.companyName,
-        tradingName: form.tradingName,
-        emailVerified: false,
+        tradingName: "",
+        emailVerified: true,
       };
-      save({ signup, currentStep: "verify-email", verificationCode: "" });
-      router.push("/verify-email");
+      save({
+        signup,
+        currentStep: "complete",
+        completed: true,
+        verificationCode: "",
+        businessDetails: {
+          businessName: form.companyName,
+          tradingName: "",
+          businessEmail: form.workEmail,
+          contactPerson: `${form.firstName} ${form.lastName}`.trim(),
+          phoneNumber: form.phoneNumber,
+        },
+      });
+      router.push("/dashboard");
     } catch (requestError) {
       setErrors({ form: getApiErrorMessage(requestError, "Unable to create workspace.") });
     } finally {
@@ -500,25 +516,28 @@ export function LoginPage() {
     try {
       const response = await login(email, password);
       const user = response.data.user;
+      const storedState = getOnboardingState();
+      const companyName = user.company_name ?? user.trading_name ?? storedState.signup.companyName ?? "";
+      const tradingName = user.trading_name ?? storedState.signup.tradingName ?? "";
       saveOnboardingState({
-        completed: Boolean(user.kyc_complete),
-        currentStep: user.kyc_complete ? "complete" : "business-details",
+        completed: true,
+        currentStep: "complete",
         signup: {
           workEmail: email,
           firstName: user.first_name ?? "Admin",
           lastName: user.last_name ?? "User",
-          companyName: user.company_name ?? "",
-          tradingName: user.trading_name ?? "",
+          companyName,
+          tradingName,
           emailVerified: true,
         },
         businessDetails: {
-          businessName: user.company_name ?? "",
-          tradingName: user.trading_name ?? "",
+          businessName: companyName,
+          tradingName,
           businessEmail: email,
           contactPerson: `${user.first_name ?? "Admin"} ${user.last_name ?? "User"}`.trim(),
         },
       });
-      router.push(getAuthSuccessRedirect(user));
+      router.push("/dashboard");
     } catch (requestError) {
       setError(getApiErrorMessage(requestError, "Unable to sign in."));
     } finally {

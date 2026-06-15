@@ -31,10 +31,13 @@ export async function resendOtp(userId: string) {
   return response.data;
 }
 
-export async function login(email: string, password: string) {
+export async function login(email: string, password: string, userPatch?: Partial<AuthUser>) {
   const payload: LoginRequest = { email, password };
   const response = await publicApiClient.post<ApiResponse<AuthTokens>>("/auth/login", payload);
-  await saveSession(response.data.data);
+  const session = userPatch
+    ? { ...response.data.data, user: { ...response.data.data.user, ...userPatch } }
+    : response.data.data;
+  await saveSession(session);
   return response.data;
 }
 

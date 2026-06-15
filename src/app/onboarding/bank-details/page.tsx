@@ -1,5 +1,5 @@
-import { BankDetailsPage } from "@/components/onboarding/OnboardingFlow";
+import { redirect } from "next/navigation";
 
 export default function BankDetails() {
-  return <BankDetailsPage />;
+  redirect("/dashboard/kyc");
 }

@@ -20,9 +20,9 @@ describe("auth flow redirects", () => {
     expect(getAuthPageRedirect(defaultOnboardingState, { authenticated: true })).toBeNull();
   });
 
-  it("routes successful login/signup verification based on KYC completion", () => {
+  it("routes successful login/signup verification directly to dashboard", () => {
     expect(getAuthSuccessRedirect({ kyc_complete: true })).toBe("/dashboard");
-    expect(getAuthSuccessRedirect({ kyc_complete: false })).toBe("/onboarding/business-details");
-    expect(getAuthSuccessRedirect({})).toBe("/onboarding/business-details");
+    expect(getAuthSuccessRedirect({ kyc_complete: false })).toBe("/dashboard");
+    expect(getAuthSuccessRedirect({})).toBe("/dashboard");
   });
 });

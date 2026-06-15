@@ -1,5 +1,5 @@
-import { BusinessDetailsPage } from "@/components/onboarding/OnboardingFlow";
+import { redirect } from "next/navigation";
 
 export default function BusinessDetails() {
-  return <BusinessDetailsPage />;
+  redirect("/dashboard/kyc");
 }

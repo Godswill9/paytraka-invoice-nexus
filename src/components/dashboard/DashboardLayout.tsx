@@ -8,14 +8,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { Sidebar } from "./Sidebar";
 import { DashboardPageSkeleton, notifyDashboard, SkeletonBlock, StatusBadge, Toast, useDashboardToasts } from "./ui";
 
-const stepRoutes: Record<string, string> = {
-  "business-details": "/onboarding/business-details",
-  "tax-profile": "/onboarding/tax-profile",
-  "bank-details": "/onboarding/bank-details",
-  preferences: "/onboarding/preferences",
-  review: "/onboarding/review",
-};
-
 function useDashboardGuard() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
@@ -31,19 +23,11 @@ function useDashboardGuard() {
           router.replace("/login");
           return;
         }
-        if (session.user?.kyc_complete === false) {
-          router.replace("/onboarding/business-details");
-          return;
-        }
         setReady(true);
       } catch {
         const state = getOnboardingState();
         if (!state.signup.workEmail) {
           router.replace("/login");
-          return;
-        }
-        if (!state.completed) {
-          router.replace(stepRoutes[state.currentStep] ?? (state.signup.emailVerified ? "/onboarding/business-details" : "/login"));
           return;
         }
         setReady(true);
@@ -75,7 +59,14 @@ function EnvironmentToggle({ mode, setMode }: { mode: "test" | "live"; setMode: 
 function Topbar({ mode, setMode, setSidebarOpen }: { mode: "test" | "live"; setMode: (mode: "test" | "live") => void; setSidebarOpen: (open: boolean) => void }) {
   const router = useRouter();
   const { user } = useAuth();
+  const [storedCompanyName, setStoredCompanyName] = useState("");
   const initials = `${user?.first_name?.[0] ?? "A"}${user?.last_name?.[0] ?? "U"}`.toUpperCase();
+  const companyName = user?.company_name ?? user?.trading_name ?? storedCompanyName ?? "PayTraka Workspace";
+
+  useEffect(() => {
+    const state = getOnboardingState();
+    setStoredCompanyName(state.signup.companyName || state.businessDetails.businessName || "");
+  }, []);
 
   return (
     <header className="sticky top-0 z-30 border-b border-[#C5C4DA] bg-white/95 backdrop-blur">
@@ -93,7 +84,7 @@ function Topbar({ mode, setMode, setSidebarOpen }: { mode: "test" | "live"; setM
           { label: "Settings", icon: Settings, action: () => router.push("/dashboard/settings") },
         ].map(({ label, icon: Icon, action }) => <button key={label} type="button" onClick={action} aria-label={label} className="rounded-lg p-1.5 text-[#454557] hover:bg-[#F1F4F8] sm:p-2"><Icon className="h-5 w-5" /></button>)}
         <div className="hidden items-center gap-3 border-l border-[#C5C4DA] pl-4 sm:flex">
-          <div className="text-right"><p className="text-sm font-bold">{user?.first_name ? `${user.first_name} ${user.last_name ?? ""}`.trim() : "Admin User"}</p><p className="text-xs text-[#757588]">{user?.company_status?.replace(/_/g, " ") ?? "Manage Profile"}</p></div>
+          <div className="text-right"><p className="text-sm font-bold">{user?.first_name ? `${user.first_name} ${user.last_name ?? ""}`.trim() : "Admin User"}</p><p className="max-w-44 truncate text-xs font-semibold text-[#757588]">{companyName}</p></div>
           {user?.logo_url ? <img src={user.logo_url} alt="Company logo" className="h-10 w-10 rounded-full object-cover" /> : <div className="grid h-10 w-10 place-items-center rounded-full bg-[#DADEFD] font-bold text-[#0001B1]">{initials}</div>}
         </div>
       </div>
