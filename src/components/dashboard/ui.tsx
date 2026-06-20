@@ -111,7 +111,7 @@ export function PageHeader({ title, subtitle, action, breadcrumb }: { title: str
     <div className="mb-6 flex min-w-0 flex-col gap-4 md:flex-row md:items-start md:justify-between">
       <div className="min-w-0">
         {breadcrumb ? <p className="mb-3 text-sm font-semibold text-[#757588]">{breadcrumb}</p> : null}
-        <h1 className="text-3xl font-extrabold tracking-normal text-[#191C1E]">{title}</h1>
+        <h1 className="text-2xl font-extrabold tracking-normal text-[#191C1E] sm:text-3xl">{title}</h1>
         <p className="mt-1 max-w-2xl text-sm text-[#454557]">{subtitle}</p>
       </div>
       {action ? <div className="flex w-full min-w-0 flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-end">{action}</div> : null}
@@ -155,14 +155,14 @@ export function DataTable({ title, columns, rows, footer = "Showing 1 to 4 recor
 
   return (
     <Card className="overflow-hidden">
-      <div className="flex min-h-16 items-center justify-between gap-4 border-b border-[#C5C4DA] px-5">
+      <div className="flex min-h-16 items-center justify-between gap-4 border-b border-[#C5C4DA] px-4 sm:px-5">
         <div className="flex items-center gap-3">
           <h2 className="text-lg font-bold">{title}</h2>
           {loading && rows.length > 0 ? <LoadingSpinner label="Refreshing" className="text-xs" /> : null}
         </div>
         <div className="flex gap-2">{actions ?? <><button type="button" onClick={() => notifyDashboard(`${title} CSV downloaded`)} aria-label={`Download ${title}`} className="rounded-lg p-2 hover:bg-[#F1F4F8]"><Download className="h-4 w-4" /></button><button type="button" onClick={() => notifyDashboard(`${title} print view opened`)} aria-label={`Print ${title}`} className="rounded-lg p-2 hover:bg-[#F1F4F8]"><Printer className="h-4 w-4" /></button></>}</div>
       </div>
-      <div className="overflow-x-auto">
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full min-w-[680px] border-collapse text-left sm:min-w-[760px]">
           <thead className="bg-[#F1F4F8] text-xs uppercase text-[#454557]">
             <tr>{columns.map((column) => <th key={column} scope="col" className="px-5 py-4 font-bold">{column}</th>)}</tr>
@@ -178,7 +178,21 @@ export function DataTable({ title, columns, rows, footer = "Showing 1 to 4 recor
           </tbody>
         </table>
       </div>
-      <div className="flex flex-col gap-3 bg-[#F7F9FB] px-5 py-4 text-sm text-[#454557] sm:flex-row sm:items-center sm:justify-between">
+      <div className="divide-y divide-[#DCE0E8] md:hidden">
+        {showSpinnerRow ? (
+          <div className="px-4 py-10"><LoadingSpinner label={`Loading ${title.toLowerCase()}`} /></div>
+        ) : rows.map((row, index) => (
+          <article key={index} className="space-y-3 bg-white p-4">
+            {columns.map((column) => (
+              <div key={column} className="grid min-w-0 grid-cols-[minmax(88px,0.42fr)_minmax(0,1fr)] gap-3">
+                <p className="text-xs font-bold uppercase tracking-wide text-[#757588]">{column}</p>
+                <div className="min-w-0 break-words text-sm text-[#191C1E]">{row[column]}</div>
+              </div>
+            ))}
+          </article>
+        ))}
+      </div>
+      <div className="flex flex-col gap-3 bg-[#F7F9FB] px-4 py-4 text-sm text-[#454557] sm:flex-row sm:items-center sm:justify-between sm:px-5">
         <span>{footer}</span>{footerActions ?? <div className="flex gap-2"><StatusBadge tone="primary">1</StatusBadge><span className="rounded-lg border border-[#C5C4DA] bg-white px-3 py-1">2</span><span className="rounded-lg border border-[#C5C4DA] bg-white px-3 py-1">3</span></div>}
       </div>
     </Card>
@@ -198,6 +212,7 @@ export type RowActionItem = {
   label: string;
   icon?: React.ElementType;
   tone?: "default" | "danger";
+  disabled?: boolean;
   onSelect: () => void;
 };
 
@@ -266,16 +281,17 @@ function RowActions({ extra, label, actions = [] }: { extra?: React.ReactNode; l
       </button>
       {open && typeof document !== "undefined" ? createPortal(
         <div ref={menuRef} role="menu" style={{ top: menuPosition.top, left: menuPosition.left }} className="fixed z-[120] w-48 overflow-hidden rounded-xl border border-[#C5C4DA] bg-white py-2 shadow-2xl">
-          {menuItems.map(({ label: action, icon: Icon, tone = "default", onSelect }) => (
+          {menuItems.map(({ label: action, icon: Icon, tone = "default", disabled = false, onSelect }) => (
             <button
               key={action}
               type="button"
               role="menuitem"
+              disabled={disabled}
               onClick={() => {
                 setOpen(false);
                 onSelect();
               }}
-              className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm font-semibold transition hover:bg-[#F1F4F8] ${tone === "danger" ? "text-red-600" : "text-[#454557]"}`}
+              className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm font-semibold transition hover:bg-[#F1F4F8] disabled:cursor-not-allowed disabled:bg-[#F7F9FB] disabled:text-[#9CA0AA] ${tone === "danger" ? "text-red-600" : "text-[#454557]"}`}
             >
               {Icon ? <Icon className="h-4 w-4" aria-hidden="true" /> : null}
               {action}
@@ -293,7 +309,7 @@ export function rowActions(extra?: React.ReactNode, label = "record", actions?: 
 }
 
 export function FilterBar({ labels = ["Date range", "Payment status", "FIRS status", "More filters"] }: { labels?: string[] }) {
-  return <Card className="mb-6 flex min-w-0 flex-wrap items-center gap-3 p-4"><Filter className="h-5 w-5 shrink-0" /><span className="font-bold">Filters:</span>{labels.map((label) => <button key={label} type="button" onClick={() => notifyDashboard(`${label} filter selected`)} className="min-w-0 rounded-lg border border-[#C5C4DA] bg-white px-4 py-2 text-sm font-semibold text-[#454557]">{label}</button>)}<button type="button" onClick={() => notifyDashboard("Filters cleared")} className="w-full text-left font-bold text-[#0001B1] sm:ml-auto sm:w-auto">Clear all</button></Card>;
+  return <Card className="mb-6 grid min-w-0 grid-cols-2 gap-3 p-4 sm:flex sm:flex-wrap sm:items-center"><span className="col-span-2 flex items-center gap-2 font-bold sm:col-span-1"><Filter className="h-5 w-5 shrink-0" /> Filters:</span>{labels.map((label) => <button key={label} type="button" onClick={() => notifyDashboard(`${label} filter selected`)} className="min-w-0 rounded-lg border border-[#C5C4DA] bg-white px-3 py-2 text-sm font-semibold text-[#454557] sm:px-4">{label}</button>)}<button type="button" onClick={() => notifyDashboard("Filters cleared")} className="col-span-2 text-left font-bold text-[#0001B1] sm:ml-auto sm:w-auto">Clear all</button></Card>;
 }
 
 export function BottomInsight({ title, asideTitle }: { title: string; asideTitle: string }) {
@@ -357,19 +373,19 @@ export function DashboardFormModal({ open, title, description, fields, initialVa
     <div className="fixed inset-0 z-[70] grid place-items-center overflow-y-auto bg-[#191C1E]/45 p-3 backdrop-blur-sm sm:p-4" role="dialog" aria-modal="true" aria-labelledby="dashboard-modal-title" onMouseDown={onClose}>
       <Card className="max-h-[92vh] w-full max-w-2xl overflow-hidden shadow-2xl" onMouseDown={(event) => event.stopPropagation()}>
         <form onSubmit={handleSubmit}>
-        <div className="flex items-start justify-between gap-4 border-b border-[#C5C4DA] bg-[#F7F9FB] p-6">
+        <div className="flex items-start justify-between gap-4 border-b border-[#C5C4DA] bg-[#F7F9FB] p-4 sm:p-6">
           <div>
             <h2 id="dashboard-modal-title" className="text-2xl font-bold text-[#191C1E]">{title}</h2>
             <p className="mt-1 text-sm text-[#454557]">{description}</p>
           </div>
           <button type="button" onClick={onClose} aria-label={`Close ${title} modal`} className="rounded-lg p-2 text-[#454557] hover:bg-white"><X className="h-5 w-5" /></button>
         </div>
-        <div className="max-h-[62vh] overflow-y-auto p-6">
+        <div className="max-h-[62vh] overflow-y-auto p-4 sm:p-6">
           <div className="grid gap-4 md:grid-cols-2">
             {fields.map((field) => <FieldControl key={field} field={field} value={initialValues[field] ?? ""} />)}
           </div>
         </div>
-        <div className="flex flex-col gap-3 border-t border-[#C5C4DA] bg-white p-6 sm:flex-row sm:justify-end">
+        <div className="flex flex-col gap-3 border-t border-[#C5C4DA] bg-white p-4 sm:flex-row sm:justify-end sm:p-6">
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
           <Button type="submit" disabled={submitting}>{submitting ? "Saving..." : submitLabel}</Button>
         </div>

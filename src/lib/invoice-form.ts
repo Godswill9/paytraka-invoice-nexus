@@ -23,17 +23,20 @@ export function validateSalesInvoiceDraft(draft: SalesInvoiceDraft) {
   const errors: string[] = [];
 
   if (!draft.customerId) errors.push("Select a customer or quick-create one before creating the invoice.");
+  if (!draft.invoiceType.trim()) errors.push("Select an invoice type.");
   if (!draft.issueDate) errors.push("Enter an issue date.");
   if (!draft.dueDate) errors.push("Enter a due date.");
+  if (!draft.currency.trim()) errors.push("Select a currency.");
   if (draft.issueDate && draft.dueDate && draft.dueDate < draft.issueDate) errors.push("Due date cannot be before issue date.");
   if (!draft.lineItems.length) errors.push("Add at least one invoice line item.");
+  if (!Number.isFinite(draft.discountAmount) || draft.discountAmount < 0) errors.push("Discount amount cannot be negative.");
 
   draft.lineItems.forEach((item, index) => {
     const label = `Line ${index + 1}`;
     if (!item.description.trim()) errors.push(`${label}: enter an item description.`);
     if (!Number.isFinite(item.quantity) || item.quantity <= 0) errors.push(`${label}: quantity must be greater than zero.`);
-    if (!Number.isFinite(item.rate) || item.rate < 0) errors.push(`${label}: unit price cannot be negative.`);
-    if (!Number.isFinite(item.vatRate) || item.vatRate < 0) errors.push(`${label}: VAT rate cannot be negative.`);
+    if (!Number.isFinite(item.rate) || item.rate <= 0) errors.push(`${label}: unit price must be greater than zero.`);
+    if (!Number.isFinite(item.vatRate) || item.vatRate < 0 || item.vatRate > 100) errors.push(`${label}: VAT rate must be between 0 and 100.`);
   });
 
   return errors;

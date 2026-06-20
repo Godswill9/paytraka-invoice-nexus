@@ -1,16 +1,16 @@
 "use client";
 
 import { Copy, Download, Edit3, Eye, Plus, Send, Trash2, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { InvoiceLineItem, SalesInvoice, SalesInvoiceRequest } from "@/types/api";
 import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
-import { FirsGate } from "@/components/ui/FirsGate";
 import { Pagination } from "@/components/ui/Pagination";
 import { useAuth } from "@/hooks/useAuth";
+import { useCustomers } from "@/hooks/useCustomers";
 import { useFirs } from "@/hooks/useFirs";
 import { useInvoices } from "@/hooks/useInvoices";
 import { getApiErrorMessage } from "@/lib/api/client";
-import { Button, Card, ComplianceAlert, DashboardFormModal, DataTable, FilterBar, MetricCard, notifyDashboard, PageHeader, StatusBadge, rowActions } from "../ui";
+import { Button, Card, ComplianceAlert, DataTable, FilterBar, MetricCard, notifyDashboard, PageHeader, StatusBadge, rowActions } from "../ui";
 
 function invoiceTotal(invoice: { line_items?: { quantity: number; unit_price: number; tax_rate?: number }[]; discount_amount?: number }) {
   const subtotal = invoice.line_items?.reduce((sum, item) => {
@@ -20,14 +20,28 @@ function invoiceTotal(invoice: { line_items?: { quantity: number; unit_price: nu
   return Math.max(subtotal - Number(invoice.discount_amount ?? 0), 0);
 }
 
+function formatDate(value?: string) {
+  if (!value) return "Not provided";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("en-NG", { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Lagos" }).format(date);
+}
+
+function shortReference(value?: string) {
+  if (!value) return "Not available";
+  if (value.length <= 18) return value;
+  return `${value.slice(0, 8)}…${value.slice(-6)}`;
+}
+
 export function SalesInvoicesPage() {
   const { user } = useAuth();
+  const { customers } = useCustomers();
   const { submit } = useFirs();
   const { invoices, pagination, pager, loading, error, create, post, update, remove, getInvoice } = useInvoices();
-  const [modalOpen, setModalOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<SalesInvoice | null>(null);
   const [editingInvoice, setEditingInvoice] = useState<SalesInvoice | null>(null);
   const totalOutstanding = invoices.reduce((sum, invoice) => sum + invoiceTotal(invoice), 0);
+  const customerById = useMemo(() => new Map(customers.map((customer) => [customer.id, customer])), [customers]);
 
   async function handlePost(id: string) {
     if (!window.confirm("Post this invoice? Posted invoices can be submitted to FIRS.")) return;
@@ -104,16 +118,7 @@ export function SalesInvoicesPage() {
 
   return (
     <>
-      <PageHeader title="Sales Invoices" subtitle="Manage your SME billing and FIRS compliance status in real-time." action={<Button onClick={() => setModalOpen(true)}><Plus className="h-4 w-4" /> Create Sales Invoice</Button>} />
-      <DashboardFormModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title="Create Sales Invoice"
-        description="Create a quick sales invoice without leaving the invoice list."
-        submitLabel="Create Invoice"
-        fields={["Customer", "Invoice type", "Issue date", "Due date", "Currency", "Discount amount", "Line item product", "Line item description", "Line item quantity", "Line item unit price", "Line item tax rate", "Notes"]}
-        onSubmit={() => notifyDashboard("Use the full invoice form to create this invoice")}
-      />
+      <PageHeader title="Sales Invoices" subtitle="Manage customer billing, payment status, and FIRS readiness." action={<Button href="/dashboard/invoices/create"><Plus className="h-4 w-4" /> Create Sales Invoice</Button>} />
       {error ? <ComplianceAlert title="Unable to load invoices" text={error} /> : null}
       <div className="mb-6 grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_280px]"><FilterBar /><MetricCard label="Total Outstanding" value={<CurrencyAmount amount={totalOutstanding} />} meta="From loaded API invoices" tone="primary" /></div>
       <DataTable
@@ -121,26 +126,26 @@ export function SalesInvoicesPage() {
         columns={["Invoice", "Customer", "Dates", "Amount", "Status", "FIRS/NRS", "Actions"]}
         rows={invoices.map((invoice) => {
           const isPosted = invoice.status === "posted" || invoice.status === "sent" || invoice.status === "paid";
+          const firsEnabled = user?.firs_enabled === 1;
+          const customer = customerById.get(invoice.customer_id);
           const actions = (
             <div className="flex flex-wrap gap-2">
               {!isPosted ? <Button className="min-h-9 px-3" onClick={() => handlePost(invoice.id)}>Post</Button> : null}
-              <FirsGate firsEnabled={user?.firs_enabled ?? 0}>
-                <Button variant="secondary" className="min-h-9 px-3" onClick={() => handleFirsSubmit(invoice.id)}>Submit FIRS</Button>
-              </FirsGate>
             </div>
           );
           return {
-            Invoice: <div><b className="text-[#0001B1]">{invoice.invoice_number}</b><p className="mt-1 text-xs text-[#757588]">{invoice.public_id}</p></div>,
-            Customer: <span className="break-words font-semibold">{invoice.customer_id}</span>,
-            Dates: <div className="text-sm"><p>Issued {invoice.issue_date}</p><p className="text-[#757588]">Due {invoice.due_date}</p></div>,
+            Invoice: <div className="min-w-0"><b className="text-[#0001B1]">{invoice.invoice_number}</b><p className="mt-1 text-xs text-[#757588]" title={invoice.public_id}>Ref: {shortReference(invoice.public_id)}</p></div>,
+            Customer: <div className="min-w-0"><p className="break-words font-semibold">{customer?.name ?? "Customer"}</p><p className="mt-1 text-xs text-[#757588]" title={invoice.customer_id}>ID: {customer?.public_id ? shortReference(customer.public_id) : shortReference(invoice.customer_id)}</p></div>,
+            Dates: <div className="text-sm"><p>Issued {formatDate(invoice.issue_date)}</p><p className="text-[#757588]">Due {formatDate(invoice.due_date)}</p></div>,
             Amount: <b><CurrencyAmount amount={invoiceTotal(invoice)} currency={invoice.currency} /></b>,
             Status: <StatusBadge>{invoice.status ?? "draft"}</StatusBadge>,
-            "FIRS/NRS": <StatusBadge>{user?.firs_enabled === 1 ? "ready" : "disabled"}</StatusBadge>,
+            "FIRS/NRS": <StatusBadge>{firsEnabled ? "ready" : "not enabled"}</StatusBadge>,
             Actions: rowActions(actions, invoice.invoice_number, [
               { label: "View invoice", icon: Eye, onSelect: () => void handleView(invoice) },
               { label: "Edit invoice", icon: Edit3, onSelect: () => void handleEdit(invoice) },
               { label: "Duplicate", icon: Copy, onSelect: () => void handleDuplicate(invoice) },
               { label: isPosted ? "Mark as paid" : "Send invoice", icon: Send, onSelect: () => void (isPosted ? update(invoice.id, { status: "paid" } as Partial<SalesInvoice> & { status: string }).then(() => notifyDashboard(`${invoice.invoice_number} marked as paid`)) : handlePost(invoice.id)) },
+              { label: firsEnabled ? "Submit to FIRS/NRS" : "FIRS/NRS not enabled", disabled: !firsEnabled || !isPosted, onSelect: () => void handleFirsSubmit(invoice.id) },
               { label: "Download CSV", icon: Download, onSelect: () => handleDownload(invoice) },
               { label: "Delete invoice", icon: Trash2, tone: "danger", onSelect: () => void handleDelete(invoice) },
             ]),
@@ -150,7 +155,7 @@ export function SalesInvoicesPage() {
         footerActions={<Pagination pagination={pagination} onPageChange={pager.setPage} />}
         loading={loading}
       />
-      {selectedInvoice ? <InvoiceDetailsModal invoice={selectedInvoice} onClose={() => setSelectedInvoice(null)} /> : null}
+      {selectedInvoice ? <InvoiceDetailsModal invoice={selectedInvoice} customerName={customerById.get(selectedInvoice.customer_id)?.name} customerReference={customerById.get(selectedInvoice.customer_id)?.public_id} onClose={() => setSelectedInvoice(null)} /> : null}
       {editingInvoice ? <InvoiceEditModal invoice={editingInvoice} onClose={() => setEditingInvoice(null)} onSave={handleUpdateInvoice} /> : null}
     </>
   );
@@ -277,21 +282,22 @@ function InvoiceInput({ label, value, onChange, type = "text" }: { label: string
   );
 }
 
-function InvoiceDetailsModal({ invoice, onClose }: { invoice: SalesInvoice; onClose: () => void }) {
+function InvoiceDetailsModal({ invoice, customerName, customerReference, onClose }: { invoice: SalesInvoice; customerName?: string; customerReference?: string; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-[90] grid place-items-center overflow-y-auto bg-[#191C1E]/45 p-3 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="invoice-details-title" onMouseDown={onClose}>
-      <Card className="w-full max-w-2xl overflow-hidden shadow-2xl" onMouseDown={(event) => event.stopPropagation()}>
-        <div className="flex items-start justify-between gap-4 border-b border-[#C5C4DA] bg-[#F7F9FB] p-6">
+      <Card className="max-h-[92vh] w-full max-w-2xl overflow-hidden shadow-2xl" onMouseDown={(event) => event.stopPropagation()}>
+        <div className="flex items-start justify-between gap-4 border-b border-[#C5C4DA] bg-[#F7F9FB] p-4 sm:p-6">
           <div>
             <h2 id="invoice-details-title" className="text-2xl font-bold">{invoice.invoice_number}</h2>
-            <p className="mt-1 text-sm text-[#454557]">Customer {invoice.customer_id}</p>
+            <p className="mt-1 text-sm font-semibold text-[#454557]">{customerName ?? "Customer"}</p>
+            <p className="mt-1 text-xs text-[#757588]" title={customerReference ?? invoice.customer_id}>Customer ID: {shortReference(customerReference ?? invoice.customer_id)}</p>
           </div>
           <button type="button" onClick={onClose} aria-label="Close invoice details" className="rounded-lg p-2 text-[#454557] hover:bg-white"><X className="h-5 w-5" /></button>
         </div>
-        <div className="p-6">
+        <div className="max-h-[72vh] overflow-y-auto p-4 sm:p-6">
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-xl bg-[#F1F4F8] p-4"><p className="text-xs font-bold uppercase text-[#757588]">Issue Date</p><p className="mt-1 font-bold">{invoice.issue_date}</p></div>
-            <div className="rounded-xl bg-[#F1F4F8] p-4"><p className="text-xs font-bold uppercase text-[#757588]">Due Date</p><p className="mt-1 font-bold">{invoice.due_date}</p></div>
+            <div className="rounded-xl bg-[#F1F4F8] p-4"><p className="text-xs font-bold uppercase text-[#757588]">Issue Date</p><p className="mt-1 font-bold">{formatDate(invoice.issue_date)}</p></div>
+            <div className="rounded-xl bg-[#F1F4F8] p-4"><p className="text-xs font-bold uppercase text-[#757588]">Due Date</p><p className="mt-1 font-bold">{formatDate(invoice.due_date)}</p></div>
             <div className="rounded-xl bg-[#F1F4F8] p-4"><p className="text-xs font-bold uppercase text-[#757588]">Status</p><p className="mt-1"><StatusBadge>{invoice.status ?? "draft"}</StatusBadge></p></div>
             <div className="rounded-xl bg-[#F1F4F8] p-4"><p className="text-xs font-bold uppercase text-[#757588]">Total</p><p className="mt-1 text-xl font-extrabold text-[#0001B1]"><CurrencyAmount amount={invoiceTotal(invoice)} currency={invoice.currency} /></p></div>
           </div>

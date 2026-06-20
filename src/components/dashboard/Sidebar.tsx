@@ -28,22 +28,102 @@ import { resetOnboardingState } from "@/lib/onboarding-store";
 import { logout as apiLogout } from "@/lib/api/auth";
 
 const navItems = [
-  { label: "Dashboard", href: "/dashboard", icon: Home, matches: ["/dashboard"] },
-  { label: "Create Invoice", href: "/dashboard/invoices/create", icon: FilePlus2, matches: ["/dashboard/invoices/create"] },
-  { label: "Send Invoices", href: "/dashboard/invoices/sales", icon: Send, matches: ["/dashboard/invoices/sales"] },
-  { label: "Suppliers", href: "/dashboard/suppliers", icon: Truck, matches: ["/dashboard/suppliers"] },
-  { label: "Customers", href: "/dashboard/customers", icon: Users, matches: ["/dashboard/customers"] },
-  { label: "Products", href: "/dashboard/products", icon: Package, matches: ["/dashboard/products"] },
-  { label: "Validate Invoice Data", href: "/dashboard/compliance/validate", icon: ClipboardCheck, matches: ["/dashboard/compliance", "/dashboard/compliance/validate"] },
-  { label: "Submit to FIRS/NRS", href: "/dashboard/compliance/submit", icon: Landmark, matches: ["/dashboard/compliance/submit"] },
-  { label: "Submission Status", href: "/dashboard/compliance/status", icon: FileCheck2, matches: ["/dashboard/compliance/status"] },
-  { label: "KYC", href: "/dashboard/kyc", icon: ShieldCheck, matches: ["/dashboard/kyc"] },
-  { label: "Receipts", href: "/dashboard/receipts", icon: ReceiptText, matches: ["/dashboard/receipts"] },
-  { label: "Payment Links", href: "/dashboard/payment-links", icon: LinkIcon, matches: ["/dashboard/payment-links"] },
-  { label: "Reports", href: "/dashboard/reports", icon: BarChart3, matches: ["/dashboard/reports"] },
-  { label: "Invoice Templates", href: "/dashboard/templates", icon: FileText, matches: ["/dashboard/templates"] },
-  { label: "Subscription", href: "/dashboard/subscription", icon: CreditCard, matches: ["/dashboard/subscription"] },
-  { label: "Support", href: "/dashboard/support", icon: MessageSquare, matches: ["/dashboard/support"] },
+  {
+    label: "Dashboard",
+    href: "/dashboard",
+    icon: Home,
+    matches: ["/dashboard"],
+  },
+  {
+    label: "Create Invoice",
+    href: "/dashboard/invoices/create",
+    icon: FilePlus2,
+    matches: ["/dashboard/invoices/create"],
+  },
+  {
+    label: "Sales Invoices",
+    href: "/dashboard/invoices/sales",
+    icon: Send,
+    matches: ["/dashboard/invoices/sales"],
+  },
+  {
+    label: "Suppliers",
+    href: "/dashboard/suppliers",
+    icon: Truck,
+    matches: ["/dashboard/suppliers"],
+  },
+  {
+    label: "Customers",
+    href: "/dashboard/customers",
+    icon: Users,
+    matches: ["/dashboard/customers"],
+  },
+  {
+    label: "Products",
+    href: "/dashboard/products",
+    icon: Package,
+    matches: ["/dashboard/products"],
+  },
+  {
+    label: "Validate Invoice Data",
+    href: "/dashboard/compliance/validate",
+    icon: ClipboardCheck,
+    matches: ["/dashboard/compliance", "/dashboard/compliance/validate"],
+  },
+  {
+    label: "Submit to FIRS/NRS",
+    href: "/dashboard/compliance/submit",
+    icon: Landmark,
+    matches: ["/dashboard/compliance/submit"],
+  },
+  {
+    label: "Submission Status",
+    href: "/dashboard/compliance/status",
+    icon: FileCheck2,
+    matches: ["/dashboard/compliance/status"],
+  },
+  {
+    label: "KYC",
+    href: "/dashboard/kyc",
+    icon: ShieldCheck,
+    matches: ["/dashboard/kyc"],
+  },
+  {
+    label: "Receipts",
+    href: "/dashboard/receipts",
+    icon: ReceiptText,
+    matches: ["/dashboard/receipts"],
+  },
+  {
+    label: "Payment Links",
+    href: "/dashboard/payment-links",
+    icon: LinkIcon,
+    matches: ["/dashboard/payment-links"],
+  },
+  {
+    label: "Reports",
+    href: "/dashboard/reports",
+    icon: BarChart3,
+    matches: ["/dashboard/reports"],
+  },
+  {
+    label: "Invoice Templates",
+    href: "/dashboard/templates",
+    icon: FileText,
+    matches: ["/dashboard/templates"],
+  },
+  {
+    label: "Subscription",
+    href: "/dashboard/subscription",
+    icon: CreditCard,
+    matches: ["/dashboard/subscription"],
+  },
+  {
+    label: "Support",
+    href: "/dashboard/support",
+    icon: MessageSquare,
+    matches: ["/dashboard/support"],
+  },
 ];
 
 function isActiveRoute(pathname: string, href: string, matches?: string[]) {
@@ -51,7 +131,13 @@ function isActiveRoute(pathname: string, href: string, matches?: string[]) {
   return pathname === href;
 }
 
-export function Sidebar({ open, setOpen }: { open: boolean; setOpen: (open: boolean) => void }) {
+export function Sidebar({
+  open,
+  setOpen,
+}: {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const logout = async () => {
@@ -64,33 +150,66 @@ export function Sidebar({ open, setOpen }: { open: boolean; setOpen: (open: bool
     <aside className="flex h-full min-h-screen w-[min(272px,85vw)] flex-col border-r border-[#C5C4DA] bg-white px-5 py-7 lg:w-[272px]">
       <div className="flex items-start justify-between gap-3">
         <Link href="/dashboard" className="inline-flex">
-          <Image src="/paytraka_logo/paytraka-logo-transparent.png" alt="PayTraka" width={132} height={38} className="h-8 w-auto object-contain" priority />
+          <Image
+            src="/paytraka_logo/paytraka-logo-transparent.png"
+            alt="PayTraka"
+            width={132}
+            height={38}
+            className="h-8 w-auto object-contain"
+            priority
+          />
         </Link>
-        <button type="button" className="lg:hidden" onClick={() => setOpen(false)} aria-label="Close navigation"><X className="h-5 w-5" /></button>
+        <button
+          type="button"
+          className="lg:hidden"
+          onClick={() => setOpen(false)}
+          aria-label="Close navigation"
+        >
+          <X className="h-5 w-5" />
+        </button>
       </div>
-      <p className="mt-1 text-sm font-semibold text-[#454557]">Business Account</p>
+      <p className="mt-1 text-sm font-semibold text-[#454557]">
+        Business Account
+      </p>
 
       <nav className="mt-7 flex-1 space-y-1 overflow-y-auto pr-1">
         {navItems.map(({ label, href, icon: Icon, matches }) => {
           const active = isActiveRoute(pathname, href, matches);
           return (
-            <Link key={label} href={href} onClick={() => setOpen(false)} className={`relative flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm font-semibold transition ${active ? "bg-[#DADEFD] text-[#0001B1]" : "text-[#454557] hover:bg-[#F1F4F8]"}`}>
+            <Link
+              key={label}
+              href={href}
+              onClick={() => setOpen(false)}
+              className={`relative flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm font-semibold transition ${active ? "bg-[#DADEFD] text-[#0001B1]" : "text-[#454557] hover:bg-[#F1F4F8]"}`}
+            >
               <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
               <span>{label}</span>
-              {active ? <span className="absolute right-0 top-2 h-6 w-1 rounded-l-full bg-[#1117E8]" /> : null}
+              {active ? (
+                <span className="absolute right-0 top-2 h-6 w-1 rounded-l-full bg-[#1117E8]" />
+              ) : null}
             </Link>
           );
         })}
       </nav>
 
       <div className="mt-5 border-t border-[#C5C4DA] pt-5">
-        <Link href="/dashboard/reports" className="mb-3 flex min-h-9 items-center justify-center gap-2 rounded-lg bg-[#1117E8] px-3 text-xs font-bold text-white shadow-[0_8px_20px_rgba(17,23,232,0.16)]">
+        <Link
+          href="/dashboard/reports"
+          className="mb-3 flex min-h-9 items-center justify-center gap-2 rounded-lg bg-[#1117E8] px-3 text-xs font-bold text-white shadow-[0_8px_20px_rgba(17,23,232,0.16)]"
+        >
           <FileCheck2 className="h-3.5 w-3.5" /> File Monthly Return
         </Link>
-        <Link href="/dashboard/settings" className="flex min-h-8 items-center gap-2 rounded-lg px-3 text-xs font-semibold text-[#454557] hover:bg-[#F1F4F8]">
+        <Link
+          href="/dashboard/settings"
+          className="flex min-h-8 items-center gap-2 rounded-lg px-3 text-xs font-semibold text-[#454557] hover:bg-[#F1F4F8]"
+        >
           <Settings className="h-3.5 w-3.5" /> Settings
         </Link>
-        <button type="button" onClick={logout} className="flex min-h-8 w-full items-center gap-2 rounded-lg px-3 text-xs font-semibold text-[#454557] hover:bg-[#F1F4F8]">
+        <button
+          type="button"
+          onClick={logout}
+          className="flex min-h-8 w-full items-center gap-2 rounded-lg px-3 text-xs font-semibold text-[#454557] hover:bg-[#F1F4F8]"
+        >
           <LogOut className="h-3.5 w-3.5" /> Logout
         </button>
       </div>
@@ -99,8 +218,22 @@ export function Sidebar({ open, setOpen }: { open: boolean; setOpen: (open: bool
 
   return (
     <>
-      <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:block">{sidebar}</div>
-      {open ? <div className="fixed inset-0 z-50 overflow-hidden bg-black/30 lg:hidden" onClick={() => setOpen(false)}><div className="h-full max-w-[85vw]" onClick={(e) => e.stopPropagation()}>{sidebar}</div></div> : null}
+      <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:block">
+        {sidebar}
+      </div>
+      {open ? (
+        <div
+          className="fixed inset-0 z-50 overflow-hidden bg-black/30 lg:hidden"
+          onClick={() => setOpen(false)}
+        >
+          <div
+            className="h-full max-w-[85vw]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {sidebar}
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }

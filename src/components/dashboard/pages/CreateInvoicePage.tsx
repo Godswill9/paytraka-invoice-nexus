@@ -41,8 +41,8 @@ function SalesInvoiceBuilder() {
   const [creatingCustomer, setCreatingCustomer] = useState(false);
   const [invoiceType, setInvoiceType] = useState("standard_invoice");
   const [currency, setCurrency] = useState("NGN");
-  const [issueDate, setIssueDate] = useState(new Date().toISOString().slice(0, 10));
-  const [dueDate, setDueDate] = useState(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10));
+  const [issueDate, setIssueDate] = useState("");
+  const [dueDate, setDueDate] = useState("");
   const [discountAmount, setDiscountAmount] = useState(0);
   const [notes, setNotes] = useState("Thank you for your business.");
   const [lineItems, setLineItems] = useState<InvoiceItem[]>([]);
@@ -60,15 +60,26 @@ function SalesInvoiceBuilder() {
   const vat = lineItems.reduce((sum, item) => sum + lineVat(item), 0);
   const total = Math.max(lineItems.reduce((sum, item) => sum + lineTotal(item), 0) - discountAmount, 0);
 
-  useEffect(() => {
-    if (!customerId && customers[0]) setCustomerId(customers[0].id);
-  }, [customerId, customers]);
+  const draft = useMemo(() => ({
+    customerId,
+    invoiceType,
+    issueDate,
+    dueDate,
+    currency,
+    notes,
+    discountAmount,
+    lineItems,
+  }), [currency, customerId, discountAmount, dueDate, invoiceType, issueDate, lineItems, notes]);
+  const validationErrors = useMemo(() => validateSalesInvoiceDraft(draft), [draft]);
+  const canCreate = validationErrors.length === 0 && !saving;
 
   useEffect(() => {
-    if (lineItems.length || !products[0]) return;
-    const product = products[0];
-    setLineItems([{ id: Date.now(), productId: product.id, description: product.description ?? product.name, quantity: 1, rate: Number(product.unit_price ?? 0), vatRate: Number(product.tax_rate ?? 0) }]);
-  }, [lineItems.length, products]);
+    const today = new Date();
+    const due = new Date(today);
+    due.setDate(due.getDate() + 14);
+    setIssueDate(today.toISOString().slice(0, 10));
+    setDueDate(due.toISOString().slice(0, 10));
+  }, []);
 
   function updateItem(id: number, updates: Partial<InvoiceItem>) {
     setLineItems((current) => current.map((item) => item.id === id ? { ...item, ...updates } : item));
@@ -118,17 +129,6 @@ function SalesInvoiceBuilder() {
   }
 
   async function saveInvoice() {
-    const draft = {
-      customerId,
-      invoiceType,
-      issueDate,
-      dueDate,
-      currency,
-      notes,
-      discountAmount,
-      lineItems,
-    };
-    const validationErrors = validateSalesInvoiceDraft(draft);
     if (validationErrors.length) {
       setFormError(validationErrors[0]);
       notifyDashboard(validationErrors[0]);
@@ -154,17 +154,18 @@ function SalesInvoiceBuilder() {
         title="Create Sales Invoice"
         subtitle="Select a customer, add products or services, calculate VAT, and prepare the invoice for sending."
         breadcrumb="Dashboard / Invoices / Create Invoice"
-        action={<><Button variant="secondary" href="/dashboard/invoices/sales">Cancel</Button><Button onClick={saveInvoice}>{saving ? "Creating..." : "Create Invoice"}</Button></>}
+        action={<><Button variant="secondary" href="/dashboard/invoices/sales">Cancel</Button><Button onClick={saveInvoice} disabled={!canCreate}>{saving ? "Creating..." : "Create Invoice"}</Button></>}
       />
       {customersError || productsError ? <ComplianceAlert title="Unable to load API data" text={customersError || productsError} /> : null}
       {formError ? <ComplianceAlert title="Invoice cannot be created yet" text={formError} tone="warning" /> : null}
 
       <div className="space-y-6">
-        <Card className="p-6">
+        <Card className="p-4 sm:p-6">
           <h2 className="text-xl font-bold">Customer & Invoice Details</h2>
+          <p className="mt-1 text-sm text-[#757588]"><span className="font-bold text-red-600">*</span> Required fields must be completed before the invoice can be created.</p>
           <div className="mt-5 grid gap-4 md:grid-cols-2">
-            <label className="block text-sm font-bold text-[#454557] md:col-span-2">Customer
-              <div className="mt-2 grid gap-2 lg:grid-cols-[minmax(0,1fr)_220px_auto]">
+            <label className="block text-sm font-bold text-[#454557] md:col-span-2">Customer <span className="text-red-600">*</span>
+              <div className="mt-2 grid gap-2 xl:grid-cols-[minmax(0,1fr)_minmax(200px,260px)_auto]">
                 <input
                   value={customerSearch}
                   onChange={(event) => setCustomerSearch(event.target.value)}
@@ -183,20 +184,20 @@ function SalesInvoiceBuilder() {
                 </Button>
               </div>
             </label>
-            <label className="block text-sm font-bold text-[#454557]">Invoice Type
+            <label className="block text-sm font-bold text-[#454557]">Invoice Type <span className="text-red-600">*</span>
               <select value={invoiceType} onChange={(event) => setInvoiceType(event.target.value)} className="mt-2 h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]">
                 <option value="standard_invoice">Standard invoice</option>
                 <option value="credit_note">Credit note</option>
                 <option value="debit_note">Debit note</option>
               </select>
             </label>
-            <label className="block text-sm font-bold text-[#454557]">Issue Date
+            <label className="block text-sm font-bold text-[#454557]">Issue Date <span className="text-red-600">*</span>
               <input type="date" value={issueDate} onChange={(event) => setIssueDate(event.target.value)} className="mt-2 h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]" />
             </label>
-            <label className="block text-sm font-bold text-[#454557]">Due Date
+            <label className="block text-sm font-bold text-[#454557]">Due Date <span className="text-red-600">*</span>
               <input type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} className="mt-2 h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]" />
             </label>
-            <label className="block text-sm font-bold text-[#454557]">Currency
+            <label className="block text-sm font-bold text-[#454557]">Currency <span className="text-red-600">*</span>
               <select value={currency} onChange={(event) => setCurrency(event.target.value)} className="mt-2 h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]">
                 {["NGN", "USD", "GBP", "EUR"].map((option) => <option key={option} value={option}>{option}</option>)}
               </select>
@@ -213,21 +214,28 @@ function SalesInvoiceBuilder() {
             <Button variant="secondary" onClick={addItem}><Plus className="h-4 w-4" /> Add Item</Button>
           </div>
           <div className="divide-y divide-[#DCE0E8]">
+            {!lineItems.length ? (
+              <div className="px-4 py-10 text-center sm:px-6">
+                <p className="font-bold text-[#191C1E]">No invoice items yet</p>
+                <p className="mt-1 text-sm text-[#757588]">Add at least one product or service with a description, quantity, and unit price.</p>
+                <Button variant="secondary" onClick={addItem} className="mt-4"><Plus className="h-4 w-4" /> Add first item</Button>
+              </div>
+            ) : null}
             {lineItems.map((item) => (
-              <div key={item.id} className="grid gap-4 p-5 xl:grid-cols-[minmax(190px,1.1fr)_minmax(220px,1.4fr)_88px_120px_96px_140px_40px] xl:items-end">
+              <div key={item.id} className="grid gap-4 p-4 sm:grid-cols-2 sm:p-5 xl:grid-cols-[minmax(190px,1.1fr)_minmax(220px,1.4fr)_88px_120px_96px_140px_40px] xl:items-end">
                 <label className="text-sm font-bold text-[#454557]">Product / Service
                   <select value={item.productId} onChange={(event) => chooseProduct(item.id, event.target.value)} disabled={productsLoading} className="mt-2 h-10 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm font-semibold outline-none focus:border-[#1117E8]">
                     <option value="">Custom item</option>
                     {products.map((product) => <option key={product.id} value={product.id}>{product.name}</option>)}
                   </select>
                 </label>
-                <label className="text-sm font-bold text-[#454557]">Description
+                <label className="text-sm font-bold text-[#454557]">Description <span className="text-red-600">*</span>
                   <input value={item.description} onChange={(event) => updateItem(item.id, { description: event.target.value })} className="mt-2 h-10 w-full rounded-lg border border-[#C5C4DA] px-3 text-sm outline-none focus:border-[#1117E8]" />
                 </label>
-                <label className="text-sm font-bold text-[#454557]">Qty
+                <label className="text-sm font-bold text-[#454557]">Qty <span className="text-red-600">*</span>
                   <input aria-label={`Quantity for ${item.description}`} type="number" min="1" value={item.quantity} onChange={(event) => updateItem(item.id, { quantity: Number(event.target.value) || 1 })} className="mt-2 h-10 w-full rounded-lg border border-[#C5C4DA] px-3 text-sm outline-none focus:border-[#1117E8]" />
                 </label>
-                <label className="text-sm font-bold text-[#454557]">Rate
+                <label className="text-sm font-bold text-[#454557]">Rate <span className="text-red-600">*</span>
                   <input aria-label={`Rate for ${item.description}`} type="number" min="0" value={item.rate} onChange={(event) => updateItem(item.id, { rate: Number(event.target.value) || 0 })} className="mt-2 h-10 w-full rounded-lg border border-[#C5C4DA] px-3 text-sm outline-none focus:border-[#1117E8]" />
                 </label>
                 <label className="text-sm font-bold text-[#454557]">VAT %
@@ -237,14 +245,14 @@ function SalesInvoiceBuilder() {
                   <p className="font-semibold text-[#454557]">Line Total</p>
                   <p className="mt-1 text-lg font-extrabold text-[#0001B1]"><CurrencyAmount amount={lineTotal(item)} /></p>
                 </div>
-                <button type="button" onClick={() => setLineItems((current) => current.filter(({ id }) => id !== item.id))} aria-label={`Remove ${item.description}`} className="h-10 rounded-lg p-2 text-red-600 hover:bg-red-50"><Trash2 className="h-4 w-4" /></button>
+                <button type="button" onClick={() => setLineItems((current) => current.filter(({ id }) => id !== item.id))} aria-label={`Remove ${item.description || "invoice item"}`} className="h-10 rounded-lg p-2 text-red-600 hover:bg-red-50 sm:justify-self-end xl:justify-self-auto"><Trash2 className="h-4 w-4" /></button>
               </div>
             ))}
           </div>
         </Card>
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <div className="grid gap-4 md:grid-cols-2">
               <label className="block text-sm font-bold text-[#454557]">Discount Amount
                 <input type="number" min="0" value={discountAmount} onChange={(event) => setDiscountAmount(Number(event.target.value) || 0)} className="mt-2 h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]" />
@@ -256,7 +264,7 @@ function SalesInvoiceBuilder() {
           </Card>
 
           <aside className="xl:sticky xl:top-24 xl:self-start">
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <h2 className="text-xl font-bold">Invoice Summary</h2>
             <div className="mt-5 space-y-3 text-sm">
               <div className="flex justify-between gap-3"><span className="text-[#454557]">Customer</span><b className="text-right">{selectedCustomer?.name ?? "Select customer"}</b></div>
@@ -268,7 +276,8 @@ function SalesInvoiceBuilder() {
             </div>
             <div className="mt-6 grid gap-3">
               <Button variant="secondary" href="/dashboard/invoices/sales">Cancel</Button>
-              <Button onClick={saveInvoice}>{saving ? "Creating..." : "Create Invoice"}</Button>
+              <Button onClick={saveInvoice} disabled={!canCreate}>{saving ? "Creating..." : "Create Invoice"}</Button>
+              {!canCreate && !saving ? <p className="text-center text-xs font-semibold text-[#757588]">{validationErrors[0]}</p> : null}
             </div>
           </Card>
           </aside>
