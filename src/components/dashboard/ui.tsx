@@ -125,7 +125,7 @@ export function MetricCard({ label, value, meta, tone = "neutral", icon: Icon }:
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-semibold uppercase text-[#454557]">{label}</p>
-          <p className={`mt-3 text-3xl font-extrabold ${tone === "danger" ? "text-red-600" : tone === "success" ? "text-green-700" : "text-[#191C1E]"}`}>{value}</p>
+          <div className={`mt-3 min-w-0 break-words text-2xl font-extrabold leading-tight sm:text-3xl ${tone === "danger" ? "text-red-600" : tone === "success" ? "text-green-700" : "text-[#191C1E]"}`}>{value}</div>
           {meta ? <p className="mt-2 text-sm font-semibold text-[#454557]">{meta}</p> : null}
         </div>
         {Icon ? <span className="rounded-lg bg-[#DADEFD] p-3 text-[#0001B1]"><Icon className="h-5 w-5" /></span> : null}
@@ -150,17 +150,17 @@ export function ComplianceAlert({ title, text, badge, tone = "danger", action }:
   );
 }
 
-export function DataTable({ title, columns, rows, footer = "Showing 1 to 4 records", actions, footerActions, loading = false }: { title: string; columns: string[]; rows: TableRow[]; footer?: string; actions?: React.ReactNode; footerActions?: React.ReactNode; loading?: boolean }) {
+export function DataTable({ title, columns, rows, footer = "Showing 1 to 4 records", actions, footerActions, loading = false, hideDefaultActions = false }: { title: string; columns: string[]; rows: TableRow[]; footer?: string; actions?: React.ReactNode; footerActions?: React.ReactNode; loading?: boolean; hideDefaultActions?: boolean }) {
   const showSpinnerRow = loading && rows.length === 0;
 
   return (
     <Card className="overflow-hidden">
-      <div className="flex min-h-16 items-center justify-between gap-4 border-b border-[#C5C4DA] px-4 sm:px-5">
-        <div className="flex items-center gap-3">
+      <div className="flex min-h-16 flex-wrap items-center justify-between gap-3 border-b border-[#C5C4DA] px-4 py-3 sm:px-5">
+        <div className="flex min-w-0 items-center gap-3">
           <h2 className="text-lg font-bold">{title}</h2>
           {loading && rows.length > 0 ? <LoadingSpinner label="Refreshing" className="text-xs" /> : null}
         </div>
-        <div className="flex gap-2">{actions ?? <><button type="button" onClick={() => notifyDashboard(`${title} CSV downloaded`)} aria-label={`Download ${title}`} className="rounded-lg p-2 hover:bg-[#F1F4F8]"><Download className="h-4 w-4" /></button><button type="button" onClick={() => notifyDashboard(`${title} print view opened`)} aria-label={`Print ${title}`} className="rounded-lg p-2 hover:bg-[#F1F4F8]"><Printer className="h-4 w-4" /></button></>}</div>
+        <div className="flex gap-2">{actions ?? (hideDefaultActions ? null : <><button type="button" onClick={() => notifyDashboard(`${title} CSV downloaded`)} aria-label={`Download ${title}`} className="rounded-lg p-2 hover:bg-[#F1F4F8]"><Download className="h-4 w-4" /></button><button type="button" onClick={() => notifyDashboard(`${title} print view opened`)} aria-label={`Print ${title}`} className="rounded-lg p-2 hover:bg-[#F1F4F8]"><Printer className="h-4 w-4" /></button></>)}</div>
       </div>
       <div className="hidden overflow-x-auto md:block">
         <table className="w-full min-w-[680px] border-collapse text-left sm:min-w-[760px]">
@@ -332,8 +332,17 @@ export function SupportCard() {
 }
 
 export function Input({ label, value = "", wide = false, name }: { label: string; value?: string; wide?: boolean; name?: string }) {
-  const isMessage = label.toLowerCase().includes("message") || label.toLowerCase().includes("note") || label.toLowerCase().includes("notes");
-  return <label className={`block text-sm font-bold text-[#454557] ${wide ? "md:col-span-2" : ""}`}>{label}<textarea name={name ?? label} rows={isMessage ? 4 : 1} defaultValue={value} placeholder={label} className="mt-2 w-full resize-none rounded-lg border border-[#C5C4DA] bg-white px-3 py-3 text-[#191C1E] outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]" /></label>;
+  const normalized = label.toLowerCase();
+  const multiline = ["message", "note", "description", "address"].some((item) => normalized.includes(item));
+  const type = normalized.includes("email") ? "email"
+    : normalized.includes("phone") || normalized.includes("telephone") ? "tel"
+      : normalized.includes("date") || normalized.includes("month") ? "date"
+        : normalized.includes("amount") || normalized.includes("price") || normalized.includes("quantity") || normalized.includes("rate") ? "number"
+          : normalized.includes("password") || normalized.includes("secret") ? "password"
+            : normalized.includes("website") || normalized.includes("url") ? "url"
+              : "text";
+  const inputMode = type === "tel" ? "tel" : type === "number" ? "decimal" : undefined;
+  return <label className={`block text-sm font-bold text-[#454557] ${wide ? "md:col-span-2" : ""}`}>{label}{multiline ? <textarea name={name ?? label} rows={normalized.includes("description") || normalized.includes("message") ? 4 : 3} defaultValue={value} placeholder={label} className="mt-2 w-full resize-y rounded-lg border border-[#C5C4DA] bg-white px-3 py-3 text-[#191C1E] outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]" /> : <input name={name ?? label} type={type} inputMode={inputMode} step={type === "number" ? "any" : undefined} defaultValue={value} placeholder={label} className="mt-2 h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-[#191C1E] outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]" />}</label>;
 }
 
 export function CheckLine({ label }: { label: string }) {
@@ -370,9 +379,9 @@ export function DashboardFormModal({ open, title, description, fields, initialVa
   };
 
   return (
-    <div className="fixed inset-0 z-[70] grid place-items-center overflow-y-auto bg-[#191C1E]/45 p-3 backdrop-blur-sm sm:p-4" role="dialog" aria-modal="true" aria-labelledby="dashboard-modal-title" onMouseDown={onClose}>
-      <Card className="max-h-[92vh] w-full max-w-2xl overflow-hidden shadow-2xl" onMouseDown={(event) => event.stopPropagation()}>
-        <form onSubmit={handleSubmit}>
+    <div className="fixed inset-0 z-[70] flex items-end justify-center overflow-hidden bg-[#191C1E]/45 p-0 backdrop-blur-sm sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="dashboard-modal-title" onMouseDown={onClose}>
+      <Card className="max-h-[94dvh] w-full max-w-2xl overflow-hidden rounded-b-none shadow-2xl sm:rounded-2xl" onMouseDown={(event) => event.stopPropagation()}>
+        <form onSubmit={handleSubmit} className="flex max-h-[94dvh] flex-col">
         <div className="flex items-start justify-between gap-4 border-b border-[#C5C4DA] bg-[#F7F9FB] p-4 sm:p-6">
           <div>
             <h2 id="dashboard-modal-title" className="text-2xl font-bold text-[#191C1E]">{title}</h2>
@@ -380,7 +389,7 @@ export function DashboardFormModal({ open, title, description, fields, initialVa
           </div>
           <button type="button" onClick={onClose} aria-label={`Close ${title} modal`} className="rounded-lg p-2 text-[#454557] hover:bg-white"><X className="h-5 w-5" /></button>
         </div>
-        <div className="max-h-[62vh] overflow-y-auto p-4 sm:p-6">
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
           <div className="grid gap-4 md:grid-cols-2">
             {fields.map((field) => <FieldControl key={field} field={field} value={initialValues[field] ?? ""} />)}
           </div>
@@ -396,6 +405,23 @@ export function DashboardFormModal({ open, title, description, fields, initialVa
 }
 
 function FieldControl({ field, value = "" }: { field: string; value?: string }) {
+  const selectOptions =
+    field === "Customer type" || field === "Supplier type"
+      ? ["individual", "business", "government", "nonprofit"]
+      : field === "State"
+        ? ["Abia","Adamawa","Akwa Ibom","Anambra","Bauchi","Bayelsa","Benue","Borno","Cross River","Delta","Ebonyi","Edo","Ekiti","Enugu","FCT","Gombe","Imo","Jigawa","Kaduna","Kano","Katsina","Kebbi","Kogi","Kwara","Lagos","Nasarawa","Niger","Ogun","Ondo","Osun","Oyo","Plateau","Rivers","Sokoto","Taraba","Yobe","Zamfara"]
+        : field === "Preferred currency" || field === "Currency"
+          ? ["NGN", "USD", "GBP", "EUR"]
+          : field.toLowerCase().includes("payment method")
+            ? ["bank_transfer", "cash", "card", "cheque", "mobile_money", "other"]
+            : field === "Status"
+              ? ["active", "inactive"]
+              : field.toLowerCase().includes("product type")
+                ? ["product", "service"]
+          : null;
+  if (selectOptions) {
+    return <label className="block text-sm font-bold text-[#454557]">{field}<select name={field} defaultValue={value || selectOptions[0]} className="mt-2 h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-[#191C1E] outline-none focus:border-[#1117E8]">{selectOptions.map((option) => <option key={option} value={option}>{option === "nonprofit" ? "Nonprofit" : option.replace(/\b\w/g, (letter) => letter.toUpperCase())}</option>)}</select></label>;
+  }
   if (field.toLowerCase().includes("upload")) {
     return <div className="md:col-span-2 rounded-xl border border-dashed border-[#C5C4DA] bg-[#F7F9FB] p-8 text-center"><Upload className="mx-auto h-8 w-8 text-[#757588]" /><p className="mt-3 font-bold">Click to upload or drag and drop</p><p className="mt-1 text-sm text-[#757588]">TIN certificate, contract, or KYC documents (PDF, JPG up to 10MB)</p></div>;
   }

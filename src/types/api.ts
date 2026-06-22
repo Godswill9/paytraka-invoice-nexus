@@ -83,6 +83,15 @@ export interface Company {
   status: string;
   mode: "demo" | "live";
   firs_enabled: number;
+  address?: string;
+  street_name?: string;
+  city?: string;
+  state?: string;
+  lga?: string;
+  postal_code?: string;
+  country?: string;
+  business_phone?: string;
+  description?: string;
 }
 
 export interface CompanyKycRequest {
@@ -115,16 +124,20 @@ export interface CompanyMode {
 export interface Customer {
   id: string;
   public_id: string;
-  customer_type: "individual" | "business";
+  customer_type: "individual" | "business" | "government" | "nonprofit";
   name: string;
   email?: string;
   phone1?: string;
   phone2?: string;
   billing_address?: string;
+  street_name?: string;
   city?: string;
   state?: string;
+  lga?: string;
   country?: string;
   postal_code?: string;
+  description?: string;
+  preferred_currency?: string;
   tax_identification_number?: string;
   rc_number?: string;
 }
@@ -133,7 +146,7 @@ export type CustomerRequest = Omit<Customer, "id" | "public_id">;
 
 export interface Supplier {
   id: string;
-  supplier_type: "individual" | "business";
+  supplier_type: "individual" | "business" | "government" | "nonprofit";
   supplier_name: string;
   contact_person?: string;
   email?: string;
@@ -141,9 +154,13 @@ export interface Supplier {
   tax_identification_number?: string;
   rc_number?: string;
   address?: string;
+  street_name?: string;
   city?: string;
   state?: string;
+  lga?: string;
+  postal_code?: string;
   country?: string;
+  description?: string;
   payment_terms?: string;
 }
 
@@ -169,6 +186,7 @@ export interface Product {
   track_inventory?: boolean;
   status: "active" | "inactive";
   category_id?: string;
+  hsn_code?: string;
 }
 
 export type ProductRequest = Omit<Product, "id">;
@@ -180,6 +198,8 @@ export interface InvoiceLineItem {
   quantity: number;
   unit_price: number;
   tax_rate?: number;
+  hsn_code?: string;
+  product_category?: string;
 }
 
 export interface SalesInvoice {
@@ -192,9 +212,20 @@ export interface SalesInvoice {
   due_date: string;
   currency: string;
   notes?: string;
-  discount_amount?: number;
-  line_items: InvoiceLineItem[];
+  subtotal?: number | string;
+  discount_amount?: number | string;
+  tax_amount?: number | string;
+  total_amount?: number | string;
+  amount_paid?: number | string;
+  balance_due?: number | string;
+  payment_status?: string;
+  customer_name?: string;
+  company_name?: string;
+  line_items?: InvoiceLineItem[];
   status?: string;
+  reference_invoice_id?: string;
+  firs_status?: string;
+  firs_response?: string | Record<string, unknown>;
 }
 
 export interface SalesInvoiceRequest {
@@ -206,6 +237,25 @@ export interface SalesInvoiceRequest {
   notes?: string;
   discount_amount?: number;
   line_items: InvoiceLineItem[];
+  reference_invoice_id?: string;
+}
+
+export interface PurchaseInvoice {
+  id: string;
+  public_id?: string;
+  invoice_number?: string;
+  supplier_id?: string;
+  supplier_name?: string;
+  invoice_date?: string;
+  issue_date?: string;
+  due_date?: string;
+  currency?: string;
+  subtotal?: number;
+  tax_amount?: number;
+  total_amount?: number;
+  amount?: number;
+  status?: string;
+  line_items?: InvoiceLineItem[];
 }
 
 export interface FirsSubmitRequest {

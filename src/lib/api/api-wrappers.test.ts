@@ -116,7 +116,7 @@ describe("auth API wrapper", () => {
     expect(clientMocks.publicApiClient.post).toHaveBeenCalledWith("/auth/resend-otp", { user_id: "user-1" });
   });
 
-  it("verifies OTP and stores returned tokens in the session route", async () => {
+  it("verifies OTP and creates the authenticated session", async () => {
     const tokens = { accessToken: "access-token", refreshToken: "refresh-token", user };
     clientMocks.publicApiClient.post.mockResolvedValue(axiosResponse(apiResponse(tokens)));
 

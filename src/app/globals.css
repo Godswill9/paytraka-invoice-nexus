@@ -346,3 +346,42 @@ body {
     transition-duration: 0.001ms !important;
   }
 }
+@media print {
+  body:has(#sales-invoice-document) * {
+    visibility: hidden;
+  }
+
+  body:has(#sales-invoice-document) #sales-invoice-document,
+  body:has(#sales-invoice-document) #sales-invoice-document * {
+    visibility: visible;
+  }
+
+  body:has(#sales-invoice-document) #sales-invoice-document {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    min-height: 0;
+    margin: 0;
+    box-shadow: none;
+  }
+
+  body:has(#invoice-template-preview) * {
+    visibility: hidden;
+  }
+
+  body:has(#invoice-template-preview) #invoice-template-preview,
+  body:has(#invoice-template-preview) #invoice-template-preview * {
+    visibility: visible;
+  }
+
+  body:has(#invoice-template-preview) #invoice-template-preview {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    min-height: 0;
+    margin: 0;
+    box-shadow: none;
+  }
+}

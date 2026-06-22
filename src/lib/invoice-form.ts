@@ -6,6 +6,8 @@ export type SalesInvoiceDraftLineItem = {
   quantity: number;
   rate: number;
   vatRate: number;
+  hsnCode?: string;
+  productCategory?: string;
 };
 
 export type SalesInvoiceDraft = {
@@ -17,32 +19,52 @@ export type SalesInvoiceDraft = {
   notes?: string;
   discountAmount: number;
   lineItems: SalesInvoiceDraftLineItem[];
+  referenceInvoiceId?: string;
 };
 
 export function validateSalesInvoiceDraft(draft: SalesInvoiceDraft) {
   const errors: string[] = [];
 
-  if (!draft.customerId) errors.push("Select a customer or quick-create one before creating the invoice.");
+  if (!draft.customerId)
+    errors.push("Select a customer or quick-create one before creating the invoice.");
   if (!draft.invoiceType.trim()) errors.push("Select an invoice type.");
+  if (
+    (draft.invoiceType === "credit_note" || draft.invoiceType === "debit_note") &&
+    !draft.referenceInvoiceId?.trim()
+  )
+    errors.push("Select the invoice referenced by this note.");
   if (!draft.issueDate) errors.push("Enter an issue date.");
   if (!draft.dueDate) errors.push("Enter a due date.");
   if (!draft.currency.trim()) errors.push("Select a currency.");
-  if (draft.issueDate && draft.dueDate && draft.dueDate < draft.issueDate) errors.push("Due date cannot be before issue date.");
-  if (!draft.lineItems.length) errors.push("Add at least one invoice line item.");
-  if (!Number.isFinite(draft.discountAmount) || draft.discountAmount < 0) errors.push("Discount amount cannot be negative.");
+  if (draft.issueDate && draft.dueDate && draft.dueDate < draft.issueDate)
+    errors.push("Due date cannot be before issue date.");
+  if (!draft.lineItems.length)
+    errors.push("Add at least one invoice line item.");
+  if (!Number.isFinite(draft.discountAmount) || draft.discountAmount < 0)
+    errors.push("Discount amount cannot be negative.");
 
   draft.lineItems.forEach((item, index) => {
     const label = `Line ${index + 1}`;
-    if (!item.description.trim()) errors.push(`${label}: enter an item description.`);
-    if (!Number.isFinite(item.quantity) || item.quantity <= 0) errors.push(`${label}: quantity must be greater than zero.`);
-    if (!Number.isFinite(item.rate) || item.rate <= 0) errors.push(`${label}: unit price must be greater than zero.`);
-    if (!Number.isFinite(item.vatRate) || item.vatRate < 0 || item.vatRate > 100) errors.push(`${label}: VAT rate must be between 0 and 100.`);
+    if (!item.description.trim())
+      errors.push(`${label}: enter an item description.`);
+    if (!Number.isFinite(item.quantity) || item.quantity <= 0)
+      errors.push(`${label}: quantity must be greater than zero.`);
+    if (!Number.isFinite(item.rate) || item.rate <= 0)
+      errors.push(`${label}: unit price must be greater than zero.`);
+    if (
+      !Number.isFinite(item.vatRate) ||
+      item.vatRate < 0 ||
+      item.vatRate > 100
+    )
+      errors.push(`${label}: VAT rate must be between 0 and 100.`);
   });
 
   return errors;
 }
 
-export function buildSalesInvoiceRequest(draft: SalesInvoiceDraft): SalesInvoiceRequest {
+export function buildSalesInvoiceRequest(
+  draft: SalesInvoiceDraft,
+): SalesInvoiceRequest {
   return {
     customer_id: draft.customerId,
     invoice_type: draft.invoiceType,
@@ -57,6 +79,9 @@ export function buildSalesInvoiceRequest(draft: SalesInvoiceDraft): SalesInvoice
       quantity: Number(item.quantity),
       unit_price: Number(item.rate),
       tax_rate: Number(item.vatRate) || 0,
+      hsn_code: item.hsnCode?.trim() || undefined,
+      product_category: item.productCategory?.trim() || undefined,
     })),
+    reference_invoice_id: draft.referenceInvoiceId?.trim() || undefined,
   };
 }

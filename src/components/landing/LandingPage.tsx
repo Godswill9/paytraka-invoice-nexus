@@ -24,6 +24,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { AuthNavActions } from "./AuthNavActions";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -243,15 +244,7 @@ function Navbar() {
         </div>
         <div className="flex items-center gap-3">
           {/* <ThemeToggle className="hidden sm:inline-flex" /> */}
-          <a
-            href="/login"
-            className="hidden text-sm font-semibold text-[#191C1E] transition hover:text-[#0001B1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1117E8] sm:inline-flex"
-          >
-            Sign in
-          </a>
-          <ButtonLink className="min-h-10 px-3 text-xs sm:px-5" href="/signup">
-            Get started
-          </ButtonLink>
+          <AuthNavActions />
           <details className="group relative lg:hidden">
             <summary
               className="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-lg border border-[#C5C4DA] bg-white text-[#0001B1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1117E8]"
@@ -269,18 +262,7 @@ function Navbar() {
                   {link.label}
                 </a>
               ))}
-              <a
-                href="/login"
-                className="block rounded-lg px-3 py-3 text-sm font-medium text-[#191C1E] hover:bg-[#F7F9FB] hover:text-[#0001B1]"
-              >
-                Sign in
-              </a>
-              <a
-                href="/signup"
-                className="block rounded-lg px-3 py-3 text-sm font-bold text-[#0001B1] hover:bg-[#F7F9FB]"
-              >
-                Get started
-              </a>
+              <AuthNavActions mobile />
             </div>
           </details>
         </div>

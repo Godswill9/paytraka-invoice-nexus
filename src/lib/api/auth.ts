@@ -1,11 +1,11 @@
 import apiClient, { publicApiClient } from "./client";
 import { ApiResponse, AuthTokens, AuthUser, LoginRequest, RegisterRequest, RegisterResponse, ResendOtpRequest, VerifyOtpRequest } from "@/types/api";
 
-async function saveSession(tokens: AuthTokens) {
+async function saveSession(tokens: AuthTokens, remember = false) {
   await fetch("/api/auth/session", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(tokens),
+    body: JSON.stringify(remember ? { ...tokens, remember: true } : tokens),
   });
 }
 
@@ -31,13 +31,13 @@ export async function resendOtp(userId: string) {
   return response.data;
 }
 
-export async function login(email: string, password: string, userPatch?: Partial<AuthUser>) {
+export async function login(email: string, password: string, userPatch?: Partial<AuthUser>, remember = false) {
   const payload: LoginRequest = { email, password };
   const response = await publicApiClient.post<ApiResponse<AuthTokens>>("/auth/login", payload);
   const session = userPatch
     ? { ...response.data.data, user: { ...response.data.data.user, ...userPatch } }
     : response.data.data;
-  await saveSession(session);
+  await saveSession(session, remember);
   return response.data;
 }
 

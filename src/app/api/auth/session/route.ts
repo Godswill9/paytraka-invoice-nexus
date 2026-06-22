@@ -24,7 +24,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  let payload: AuthTokens;
+  let payload: AuthTokens & { remember?: boolean };
   try {
     payload = (await request.json()) as AuthTokens;
   } catch {
@@ -37,9 +37,10 @@ export async function POST(request: NextRequest) {
 
   const response = NextResponse.json({ success: true, user: payload.user });
 
-  response.cookies.set(ACCESS_COOKIE, payload.accessToken, { ...cookieOptions, maxAge: 60 * 60 });
-  response.cookies.set(REFRESH_COOKIE, payload.refreshToken, { ...cookieOptions, maxAge: 60 * 60 * 24 * 30 });
-  response.cookies.set(USER_COOKIE, JSON.stringify(payload.user), { ...cookieOptions, maxAge: 60 * 60 * 24 * 30 });
+  const persistent = payload.remember ? { maxAge: 60 * 60 * 24 * 30 } : {};
+  response.cookies.set(ACCESS_COOKIE, payload.accessToken, { ...cookieOptions, ...persistent });
+  response.cookies.set(REFRESH_COOKIE, payload.refreshToken, { ...cookieOptions, ...persistent });
+  response.cookies.set(USER_COOKIE, JSON.stringify(payload.user), { ...cookieOptions, ...persistent });
 
   return response;
 }

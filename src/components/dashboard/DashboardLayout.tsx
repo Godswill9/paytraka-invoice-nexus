@@ -140,15 +140,16 @@ function Topbar({
             icon: Bell,
             action: () => notifyDashboard("No new compliance notifications"),
           },
-          {
-            label: "Help",
-            icon: HelpCircle,
-            action: () => router.push("/dashboard/support"),
-          },
+          // {
+          //   label: "Help",
+          //   icon: HelpCircle,
+          //   action: () => router.push("/dashboard/support"),
+          // },
           {
             label: "Settings",
             icon: Settings,
-            action: () => router.push("/dashboard/settings"),
+            action: () => router.push("/dashboard/kyc"),
+            // action: () => router.push("/dashboard/settings"),
           },
         ].map(({ label, icon: Icon, action }) => (
           <button

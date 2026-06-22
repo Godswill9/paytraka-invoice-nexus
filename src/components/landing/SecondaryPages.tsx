@@ -29,6 +29,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { AuthNavActions } from "./AuthNavActions";
 
 type PageKey = "home" | "product" | "solutions" | "resources" | "company";
 
@@ -42,68 +43,32 @@ const navLinks: Array<{ label: string; href: string; key: PageKey }> = [
 
 const team = [
   {
-    name: "Chukwuemeka Obi",
+    name: "Eder Obong",
     role: "Chief Executive Officer",
-    bio: "Leads company vision, strategic partnerships and sustainable growth across the Nigerian compliance space.",
-    photo:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
-    socials: { linkedin: "#", twitter: "#", email: "#" },
+    bio: "Leads PayTraka's vision, strategy and partnerships as the company builds dependable financial tools for Nigerian businesses.",
+    photo: "/team/pastor Edet2.jpg",
+    socials: {},
   },
   {
-    name: "Adaeze Nwosu",
+    name: "Yusuf Saheed",
     role: "Co-Chief Executive Officer",
-    bio: "Drives commercial strategy, operations and client success — ensuring every business gets real value from day one.",
-    photo:
-      "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=400&q=80",
-    socials: { linkedin: "#", twitter: "#", email: "#" },
+    bio: "Supports company leadership, commercial direction and operations, helping turn PayTraka's vision into sustainable execution.",
+    photo: "/team/mr Yusuf2.jpg",
+    socials: {},
   },
   {
-    name: "Babatunde Adeyemi",
-    role: "Head of Engineering",
-    bio: "Leads product development, FIRS API integrations and platform reliability — building secure, scalable infrastructure.",
-    photo:
-      "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80",
-    socials: { linkedin: "#", github: "#", email: "#" },
+    name: "Hycinth God'swill",
+    role: "Tech Lead",
+    bio: "Leads the technical direction of PayTraka, overseeing product engineering, platform reliability and scalable implementation.",
+    photo: "/team/hycinth-godswill.png",
+    socials: {},
   },
   {
-    name: "Ngozi Ekezie",
-    role: "Lead Tax Consultant",
-    bio: "Bridges tax workflow expertise with product design — ensuring every compliance feature reflects real business needs.",
-    photo:
-      "https://images.unsplash.com/photo-1589156280159-27698a70f29e?auto=format&fit=crop&w=400&q=80",
-    socials: { linkedin: "#", twitter: "#" },
-  },
-  {
-    name: "Ifeanyi Okeke",
-    role: "Backend Engineer",
-    bio: "Builds and maintains PayTraka's core APIs, FIRS submission pipeline and Paystack billing integrations.",
-    photo:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
-    socials: { linkedin: "#", github: "#" },
-  },
-  {
-    name: "Amara Okonkwo",
-    role: "Product Designer",
-    bio: "Shapes PayTraka's user experience — from onboarding flows to invoice dashboards — with clarity and intent.",
-    photo:
-      "https://images.unsplash.com/photo-1614283233556-f35b0c801ef1?auto=format&fit=crop&w=400&q=80",
-    socials: { linkedin: "#", dribbble: "#" },
-  },
-  {
-    name: "Emeka Chibueze",
-    role: "ERP Integration Specialist",
-    bio: "Handles ERPNext and third-party system integrations — connecting PayTraka to the tools businesses already rely on.",
-    photo:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80",
-    socials: { linkedin: "#", email: "#" },
-  },
-  {
-    name: "Chidinma Ezeh",
-    role: "Customer Success Lead",
-    bio: "Guides businesses through onboarding, training and ongoing support — making sure every client is set up to succeed.",
-    photo:
-      "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80",
-    socials: { linkedin: "#", twitter: "#" },
+    name: "Emmanuel Okoye",
+    role: "Frontend Developer",
+    bio: "Builds responsive, accessible product experiences across PayTraka, turning designs and workflows into clear user interfaces.",
+    photo: "/team/emmanuel-okoye.png",
+    socials: {},
   },
 ];
 
@@ -369,18 +334,7 @@ export function SiteNavbar({ active }: { active: PageKey }) {
         </div>
         <div className="flex items-center gap-3">
           {/* <ThemeToggle className="hidden sm:inline-flex" /> */}
-          <a
-            href="/login"
-            className="hidden min-h-10 items-center rounded-lg border border-[#C5C4DA] bg-white px-5 text-sm font-bold text-[#0001B1] transition hover:border-[#1117E8] sm:inline-flex"
-          >
-            Sign in
-          </a>
-          <a
-            href="/signup"
-            className="inline-flex min-h-10 items-center rounded-lg bg-[#1117E8] px-3 text-xs font-bold text-white shadow-[0_12px_28px_rgba(17,23,232,0.2)] transition hover:bg-[#0001B1] sm:px-5 sm:text-sm"
-          >
-            Get started
-          </a>
+          <AuthNavActions />
           <details className="group relative lg:hidden">
             <summary
               className="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-lg border border-[#C5C4DA] bg-white text-[#0001B1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1117E8]"
@@ -401,12 +355,7 @@ export function SiteNavbar({ active }: { active: PageKey }) {
                   {link.label}
                 </a>
               ))}
-              <a
-                href="/login"
-                className="block rounded-lg px-3 py-3 text-sm font-medium text-[#191C1E] hover:bg-[#F7F9FB] hover:text-[#0001B1]"
-              >
-                Sign in
-              </a>
+              <AuthNavActions mobile />
             </div>
           </details>
         </div>
@@ -1160,12 +1109,12 @@ export function CompanyPage() {
                   The people behind PayTraka
                 </span>
                 <h2 className="mt-5 max-w-xl text-3xl font-extrabold text-white md:text-[40px]">
-                  A cross-functional team built for your business.
+                  Four people, one focused mission.
                 </h2>
               </div>
               <p className="max-w-sm text-sm leading-7 text-[#C9CDE0]">
-                Leadership, tax expertise and engineering working together — so
-                every workflow is dependable.
+                Leadership and engineering working closely together to make
+                invoicing and compliance simpler for Nigerian businesses.
               </p>
             </div>
 
@@ -1178,7 +1127,7 @@ export function CompanyPage() {
                   <img
                     src={photo}
                     alt={name}
-                    className="h-[220px] w-full object-cover object-top"
+                    className="h-[320px] w-full object-cover object-top"
                   />
                   <div className="p-5">
                     <p className="text-base font-semibold text-white">{name}</p>
@@ -1188,7 +1137,9 @@ export function CompanyPage() {
                     <p className="mt-2 min-h-[60px] text-xs leading-[1.6] text-[#C9CDE0]">
                       {bio}
                     </p>
-                    <StaffSocials socials={socials} />
+                    {Object.keys(socials).length ? (
+                      <StaffSocials socials={socials} />
+                    ) : null}
                   </div>
                 </article>
               ))}

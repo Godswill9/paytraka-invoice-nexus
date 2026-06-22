@@ -41,7 +41,14 @@ import {
   saveOnboardingState,
 } from "@/lib/onboarding-store";
 import { getApiErrorMessage } from "@/lib/api/client";
-import { getMe, login, register, resendOtp, verifyOtp } from "@/lib/api/auth";
+import {
+  getMe,
+  getRegisteredUserId,
+  login,
+  register,
+  resendOtp,
+  verifyOtp,
+} from "@/lib/api/auth";
 import { submitKyc } from "@/lib/api/companies";
 import { getAuthSuccessRedirect } from "@/lib/auth-flow";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
@@ -94,14 +101,14 @@ const sidebarConfigs: Record<PageKind, SidebarConfig> = {
         title: "Revenue Growth",
         text: "Track collections and settlement status.",
       },
-      {
-        icon: BadgeCheck,
-        title: "ISO 27001",
-        text: "Security-first operating practices.",
-      },
+      // {
+      //   icon: BadgeCheck,
+      //   title: "ISO 27001",
+      //   text: "Security-first operating practices.",
+      // },
     ],
-    quote:
-      '"The most robust financial operating system for growing Nigerian enterprises."',
+    // quote:
+    //   '"The most robust financial operating system for growing Nigerian enterprises."',
   },
   verify: {
     headline: "Institutional Trust for Nigerian Business Growth.",
@@ -308,30 +315,32 @@ function AuthOnboardingLayout({
 
   return (
     <div className="onboarding-theme min-h-screen min-h-[100svh] overflow-x-hidden bg-[#F5F6FA] lg:grid lg:h-screen lg:grid-cols-[minmax(340px,42%)_minmax(0,58%)] lg:overflow-hidden">
-      <aside className="relative hidden overflow-hidden bg-[#0001B1] px-10 py-9 text-white lg:flex lg:h-screen lg:flex-col">
+      <aside className="relative hidden overflow-hidden bg-[#0001B1] px-8 py-6 text-white lg:flex lg:h-screen lg:flex-col xl:px-10 xl:py-8">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.18),transparent_30%),radial-gradient(circle_at_80%_70%,rgba(17,23,232,0.9),transparent_35%)]" />
         <div className="relative z-10 my-auto max-w-xl">
           {config.eyebrow ? (
-            <p className="mb-6 inline-flex rounded-full border border-white/25 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-wide text-white/90">
+            <p className="mb-4 inline-flex rounded-full border border-white/25 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-wide text-white/90 xl:mb-6">
               {config.eyebrow}
             </p>
           ) : null}
-          <h1 className="text-3xl font-extrabold leading-tight xl:text-4xl">
+          <h1 className="text-2xl font-extrabold leading-tight xl:text-4xl">
             {config.headline}
           </h1>
-          <p className="mt-4 text-sm leading-6 text-white/75 xl:text-base">
+          <p className="mt-3 text-sm leading-5 text-white/75 xl:mt-4 xl:text-base xl:leading-6">
             {config.body}
           </p>
-          <div className="mt-6 grid gap-3">
+          <div className="mt-4 grid gap-2 xl:mt-6 xl:gap-3">
             {config.features.map(({ icon: Icon, title, text }, index) => (
               <div
                 key={title}
-                className="animate-[floatCard_7s_ease-in-out_infinite] rounded-xl border border-white/20 bg-white/10 p-3.5 shadow-2xl backdrop-blur"
+                className="animate-[floatCard_7s_ease-in-out_infinite] rounded-xl border border-white/20 bg-white/10 p-3 shadow-2xl backdrop-blur xl:p-3.5"
                 style={{ animationDelay: `${index * 0.8}s` }}
               >
-                <Icon className="h-5 w-5" aria-hidden="true" />
-                <h2 className="mt-2 text-base font-bold xl:text-lg">{title}</h2>
-                <p className="mt-1 text-xs leading-5 text-white/68 xl:text-sm">
+                <Icon className="h-4 w-4 xl:h-5 xl:w-5" aria-hidden="true" />
+                <h2 className="mt-1.5 text-sm font-bold xl:mt-2 xl:text-lg">
+                  {title}
+                </h2>
+                <p className="mt-1 text-xs leading-4 text-white/68 xl:text-sm xl:leading-5">
                   {text}
                 </p>
               </div>
@@ -667,7 +676,7 @@ export function SignupPage() {
     if (Object.keys(nextErrors).length) return;
     setSubmitting(true);
     try {
-      await register({
+      const response = await register({
         first_name: form.firstName,
         last_name: form.lastName,
         email: form.workEmail,
@@ -675,28 +684,25 @@ export function SignupPage() {
         phone: form.phoneNumber,
         company_name: form.companyName,
       });
-      await login(form.workEmail, form.password, {
-        first_name: form.firstName,
-        last_name: form.lastName,
-        email: form.workEmail,
-        company_name: form.companyName,
-        trading_name: form.companyName,
-        kyc_complete: false,
-      });
+      const userId = getRegisteredUserId(response.data);
+      if (!userId)
+        throw new Error(
+          "Registration succeeded, but no verification ID was returned.",
+        );
       const signup: SignupData = {
-        userId: "",
+        userId,
         firstName: form.firstName,
         lastName: form.lastName,
         workEmail: form.workEmail,
         phoneNumber: form.phoneNumber,
         companyName: form.companyName,
         tradingName: "",
-        emailVerified: true,
+        emailVerified: false,
       };
       save({
         signup,
-        currentStep: "complete",
-        completed: true,
+        currentStep: "verify-email",
+        completed: false,
         verificationCode: "",
         businessDetails: {
           businessName: form.companyName,
@@ -706,7 +712,7 @@ export function SignupPage() {
           phoneNumber: form.phoneNumber,
         },
       });
-      router.push("/dashboard");
+      router.push("/verify-email");
     } catch (requestError) {
       setErrors({
         form: getApiErrorMessage(requestError, "Unable to create workspace."),
@@ -817,7 +823,7 @@ export function SignupPage() {
           </p>
         ) : null}
         <button
-          disabled={submitting}
+          disabled={submitting || !form.terms}
           className="mt-6 h-12 rounded-xl bg-[#1117E8] text-base font-bold text-white shadow-[0_16px_32px_rgba(17,23,232,0.2)] transition hover:bg-[#0001B1] disabled:opacity-60"
         >
           {submitting ? "Creating..." : "Create Workspace"}
@@ -838,6 +844,7 @@ export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -852,7 +859,7 @@ export function LoginPage() {
     setSubmitting(true);
     setError("");
     try {
-      const response = await login(email, password);
+      const response = await login(email, password, undefined, remember);
       const user = response.data.user;
       const storedState = getOnboardingState();
       const companyName =
@@ -895,7 +902,9 @@ export function LoginPage() {
         onSubmit={submit}
         className="mx-auto flex min-h-[calc(100svh-5rem)] max-w-lg flex-col justify-center py-4 sm:py-5"
       >
-        <h1 className="text-3xl font-extrabold text-[#191C1E] sm:text-4xl">Welcome back</h1>
+        <h1 className="text-3xl font-extrabold text-[#191C1E] sm:text-4xl">
+          Welcome back
+        </h1>
         <p className="mt-3 text-base text-[#454557] sm:text-lg">
           Please enter your credentials to access your dashboard.
         </p>
@@ -942,6 +951,8 @@ export function LoginPage() {
           <label className="flex items-center gap-3 text-[#454557]">
             <input
               type="checkbox"
+              checked={remember}
+              onChange={(event) => setRemember(event.target.checked)}
               className="h-5 w-5 rounded border-[#C5C4DA]"
             />{" "}
             Remember me
@@ -1702,8 +1713,12 @@ function Toggle({
   return (
     <label className="flex items-center justify-between gap-4 sm:gap-5">
       <span className="min-w-0">
-        <span className="block text-base font-bold text-[#191C1E] sm:text-xl">{label}</span>
-        <span className="mt-1 block text-sm text-[#454557] sm:text-lg">{text}</span>
+        <span className="block text-base font-bold text-[#191C1E] sm:text-xl">
+          {label}
+        </span>
+        <span className="mt-1 block text-sm text-[#454557] sm:text-lg">
+          {text}
+        </span>
       </span>
       <input
         type="checkbox"
