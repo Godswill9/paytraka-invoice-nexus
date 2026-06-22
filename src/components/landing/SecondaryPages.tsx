@@ -43,7 +43,7 @@ const navLinks: Array<{ label: string; href: string; key: PageKey }> = [
 
 const team = [
   {
-    name: "Eder Obong",
+    name: "Edet Obong",
     role: "Chief Executive Officer",
     bio: "Leads PayTraka's vision, strategy and partnerships as the company builds dependable financial tools for Nigerian businesses.",
     photo: "/team/pastor Edet2.jpg",
