@@ -8,6 +8,7 @@ const PUBLIC_ROUTES = new Set([
   "/product",
   "/resources",
   "/solutions",
+  "/company",
 ]);
 
 function isPublicPath(pathname: string) {
