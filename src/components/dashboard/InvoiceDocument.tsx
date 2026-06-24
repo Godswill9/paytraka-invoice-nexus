@@ -38,7 +38,8 @@ export function InvoiceDocument({
   customer?: Customer;
   logoUrl?: string | null;
 }) {
-  const companyName = invoice.company_name || company?.company_name || "Company";
+  const companyName =
+    invoice.company_name || company?.company_name || "Company";
   const customerName = invoice.customer_name || customer?.name || "Customer";
   const currency = invoice.currency || "NGN";
   const subtotal = salesInvoiceSubtotal(invoice);
@@ -46,6 +47,7 @@ export function InvoiceDocument({
   const tax = salesInvoiceTax(invoice);
   const total = salesInvoiceTotal(invoice);
   const balance = salesInvoiceBalance(invoice);
+  const irn = invoice.irn;
 
   return (
     <article
@@ -54,20 +56,43 @@ export function InvoiceDocument({
     >
       <header className="grid gap-8 sm:grid-cols-[minmax(0,1fr)_220px] sm:items-start">
         <div>
-          <h1 className="text-4xl font-black tracking-[0.03em] sm:text-5xl">INVOICE</h1>
+          <h1 className="text-4xl font-black tracking-[0.03em] sm:text-5xl">
+            INVOICE
+          </h1>
           <div className="mt-4 space-y-1 text-xs font-semibold sm:text-sm">
-            <p><b>Invoice No:</b> {invoice.invoice_number}</p>
-            <p><b>Date:</b> {date(invoice.issue_date)}</p>
-            <p><b>Due Date:</b> {date(invoice.due_date)}</p>
+            <p>
+              <b>Invoice No:</b> {invoice.invoice_number}
+            </p>
+            <p>
+              <b>Date:</b> {date(invoice.issue_date)}
+            </p>
+            <p>
+              <b>Due Date:</b> {date(invoice.due_date)}
+            </p>
+            <p>
+              {irn && (
+                <span>
+                  <b>IRN:</b> {irn}
+                </span>
+              )}
+            </p>
           </div>
         </div>
         <div className="flex min-h-20 items-center justify-start sm:justify-end">
           {logoUrl ? (
-            <img src={logoUrl} alt={`${companyName} letterhead`} className="max-h-20 max-w-[190px] object-contain" />
+            <img
+              src={logoUrl}
+              alt={`${companyName} letterhead`}
+              className="max-h-20 max-w-[190px] object-contain"
+            />
           ) : (
             <div className="text-left sm:text-right">
-              <p className="text-xl font-black uppercase leading-tight">{companyName}</p>
-              <p className="mt-1 text-xs font-semibold text-[#66728A]">Company Letterhead</p>
+              <p className="text-xl font-black uppercase leading-tight">
+                {companyName}
+              </p>
+              {/* <p className="mt-1 text-xs font-semibold text-[#66728A]">
+                Company Letterhead
+              </p> */}
             </div>
           )}
         </div>
@@ -77,21 +102,41 @@ export function InvoiceDocument({
         <div>
           <p className="text-xs font-black uppercase tracking-wide">From:</p>
           <h2 className="mt-2 font-black uppercase">{companyName}</h2>
-          {company?.tax_identification_number ? <p className="mt-1">TIN: {company.tax_identification_number}</p> : null}
+          {company?.tax_identification_number ? (
+            <p className="mt-1">TIN: {company.tax_identification_number}</p>
+          ) : null}
           <p className="mt-1 font-semibold">Postage Address:</p>
           <p className="mt-1 max-w-xs leading-6">
-            {[company?.street_name || company?.address, company?.city, company?.lga, company?.state, company?.postal_code, company?.country]
+            {[
+              company?.street_name || company?.address,
+              company?.city,
+              company?.lga,
+              company?.state,
+              company?.postal_code,
+              company?.country,
+            ]
               .filter(Boolean)
               .join(", ") || "Company address not provided"}
           </p>
         </div>
         <div>
-          <p className="text-xs font-black uppercase tracking-wide">Issued To:</p>
+          <p className="text-xs font-black uppercase tracking-wide">
+            Issued To:
+          </p>
           <h2 className="mt-2 font-black">{customerName}</h2>
-          {customer?.tax_identification_number ? <p className="mt-1">TIN: {customer.tax_identification_number}</p> : null}
+          {customer?.tax_identification_number ? (
+            <p className="mt-1">TIN: {customer.tax_identification_number}</p>
+          ) : null}
           <p className="mt-1 font-semibold">Postage Address:</p>
           <p className="mt-1 leading-6">
-            {[customer?.street_name || customer?.billing_address, customer?.city, customer?.lga, customer?.state, customer?.postal_code, customer?.country]
+            {[
+              customer?.street_name || customer?.billing_address,
+              customer?.city,
+              customer?.lga,
+              customer?.state,
+              customer?.postal_code,
+              customer?.country,
+            ]
               .filter(Boolean)
               .join(", ") || "Customer address not provided"}
           </p>
@@ -104,31 +149,59 @@ export function InvoiceDocument({
             <tr>
               <th className="px-3 py-4 font-black">DESCRIPTION</th>
               <th className="px-3 py-4 text-center font-black">QUANTITY</th>
-              <th className="px-3 py-4 text-right font-black">EXCL.<br />PRICE</th>
+              <th className="px-3 py-4 text-right font-black">
+                EXCL.
+                <br />
+                PRICE
+              </th>
               <th className="px-3 py-4 text-right font-black">DISC %</th>
               <th className="px-3 py-4 text-right font-black">VAT %</th>
-              <th className="px-3 py-4 text-right font-black">EXCL.<br />TOTAL</th>
-              <th className="px-3 py-4 text-right font-black">INCL.<br />TOTAL</th>
+              <th className="px-3 py-4 text-right font-black">
+                EXCL.
+                <br />
+                TOTAL
+              </th>
+              <th className="px-3 py-4 text-right font-black">
+                INCL.
+                <br />
+                TOTAL
+              </th>
             </tr>
           </thead>
           <tbody>
-            {(invoice.line_items ?? []).length ? (invoice.line_items ?? []).map((item, index) => {
-              const base = Number(item.quantity) * Number(item.unit_price);
-              const inclusive = base + (base * Number(item.tax_rate ?? 0)) / 100;
-              return (
-                <tr key={`${item.description}-${index}`} className="border-b border-[#DCE0E8]">
-                  <td className="px-3 py-4 font-bold">{item.description}</td>
-                  <td className="px-3 py-4 text-center">{item.quantity}</td>
-                  <td className="px-3 py-4 text-right">{money(Number(item.unit_price), currency)}</td>
-                  <td className="px-3 py-4 text-right">0.00%</td>
-                  <td className="px-3 py-4 text-right">{Number(item.tax_rate ?? 0).toFixed(2)}%</td>
-                  <td className="px-3 py-4 text-right">{money(base, currency)}</td>
-                  <td className="px-3 py-4 text-right font-bold">{money(inclusive, currency)}</td>
-                </tr>
-              );
-            }) : (
+            {(invoice.line_items ?? []).length ? (
+              (invoice.line_items ?? []).map((item, index) => {
+                const base = Number(item.quantity) * Number(item.unit_price);
+                const inclusive =
+                  base + (base * Number(item.tax_rate ?? 0)) / 100;
+                return (
+                  <tr
+                    key={`${item.description}-${index}`}
+                    className="border-b border-[#DCE0E8]"
+                  >
+                    <td className="px-3 py-4 font-bold">{item.description}</td>
+                    <td className="px-3 py-4 text-center">{item.quantity}</td>
+                    <td className="px-3 py-4 text-right">
+                      {money(Number(item.unit_price), currency)}
+                    </td>
+                    <td className="px-3 py-4 text-right">0.00%</td>
+                    <td className="px-3 py-4 text-right">
+                      {Number(item.tax_rate ?? 0).toFixed(2)}%
+                    </td>
+                    <td className="px-3 py-4 text-right">
+                      {money(base, currency)}
+                    </td>
+                    <td className="px-3 py-4 text-right font-bold">
+                      {money(inclusive, currency)}
+                    </td>
+                  </tr>
+                );
+              })
+            ) : (
               <tr className="border-b border-[#DCE0E8]">
-                <td className="px-3 py-5 text-[#66728A]" colSpan={7}>Line-item details are unavailable in this invoice response.</td>
+                <td className="px-3 py-5 text-[#66728A]" colSpan={7}>
+                  Line-item details are unavailable in this invoice response.
+                </td>
               </tr>
             )}
           </tbody>
@@ -136,10 +209,22 @@ export function InvoiceDocument({
       </section>
 
       <section className="mt-8 ml-auto w-full max-w-xs space-y-4 text-xs sm:text-sm">
-        <div className="flex justify-between gap-4"><span>Total Discount:</span><b>{money(discount, currency)}</b></div>
-        <div className="flex justify-between gap-4"><span>Total Exclusive:</span><b>{money(subtotal, currency)}</b></div>
-        <div className="flex justify-between gap-4"><span>Total VAT:</span><b>{money(tax, currency)}</b></div>
-        <div className="flex justify-between gap-4 border-t border-[#DCE0E8] pt-3"><span>Balance Due:</span><b>{money(balance, currency)}</b></div>
+        <div className="flex justify-between gap-4">
+          <span>Total Discount:</span>
+          <b>{money(discount, currency)}</b>
+        </div>
+        <div className="flex justify-between gap-4">
+          <span>Total Exclusive:</span>
+          <b>{money(subtotal, currency)}</b>
+        </div>
+        <div className="flex justify-between gap-4">
+          <span>Total VAT:</span>
+          <b>{money(tax, currency)}</b>
+        </div>
+        <div className="flex justify-between gap-4 border-t border-[#DCE0E8] pt-3">
+          <span>Balance Due:</span>
+          <b>{money(balance, currency)}</b>
+        </div>
       </section>
 
       <section className="mt-10 flex items-center justify-between gap-5 bg-[#EEEAE2] px-5 py-5 text-sm font-black sm:text-base">
@@ -150,12 +235,26 @@ export function InvoiceDocument({
       <div className="min-h-36 lg:min-h-52" />
 
       <footer>
-        {invoice.notes ? <p className="mb-6 text-xs text-[#66728A]">{invoice.notes}</p> : null}
+        {invoice.notes ? (
+          <p className="mb-6 text-xs text-[#66728A]">{invoice.notes}</p>
+        ) : null}
         <div className="relative overflow-hidden border-t-[3px] border-[#075CBD] pt-5">
           <div className="flex flex-col gap-3 pr-0 text-[9px] text-[#66728A] sm:flex-row sm:items-center sm:gap-4 sm:pr-36">
-            {company?.business_phone ? <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3 text-red-700" /> {company.business_phone}</span> : null}
-            {company?.business_email ? <span className="inline-flex items-center gap-1"><Mail className="h-3 w-3" /> {company.business_email}</span> : null}
-            <span className="inline-flex items-center gap-1"><Globe2 className="h-3 w-3 text-cyan-600" /> Generated from PayTraka</span>
+            {company?.business_phone ? (
+              <span className="inline-flex items-center gap-1">
+                <Phone className="h-3 w-3 text-red-700" />{" "}
+                {company.business_phone}
+              </span>
+            ) : null}
+            {company?.business_email ? (
+              <span className="inline-flex items-center gap-1">
+                <Mail className="h-3 w-3" /> {company.business_email}
+              </span>
+            ) : null}
+            <span className="inline-flex items-center gap-1">
+              <Globe2 className="h-3 w-3 text-cyan-600" /> Generated from
+              PayTraka
+            </span>
           </div>
           <div className="mt-5 h-14 bg-[#075CBD] sm:absolute sm:-bottom-5 sm:right-0 sm:mt-0 sm:w-32">
             <div className="h-full w-14 -skew-x-[40deg] bg-amber-400" />

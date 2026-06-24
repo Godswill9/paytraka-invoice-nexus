@@ -415,7 +415,7 @@ function HeroSection() {
             <ButtonLink href="/signup">Get Started</ButtonLink>
             {/* <ButtonLink href="/signup">Start Free Trial</ButtonLink> */}
             <ButtonLink href="/company#contact" variant="secondary">
-              Get started
+              Book a demo
             </ButtonLink>
           </div>
           <div className="mt-10 grid max-w-xl gap-5 text-[#191C1E] sm:grid-cols-3">
@@ -585,7 +585,10 @@ function WorkflowSection() {
         </div>
         <div className="mt-10 grid gap-4 rounded-2xl border border-[#C5C4DA] bg-white p-5 sm:grid-cols-2 sm:p-6">
           <div className="flex gap-3">
-            <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#1117E8]" aria-hidden="true" />
+            <Check
+              className="mt-0.5 h-5 w-5 shrink-0 text-[#1117E8]"
+              aria-hidden="true"
+            />
             <p className="text-sm leading-6 text-[#454557]">
               <strong className="text-[#191C1E]">Customer delivery:</strong>{" "}
               PayTraka does not send invoices to customers. Download the posted
@@ -593,7 +596,10 @@ function WorkflowSection() {
             </p>
           </div>
           <div className="flex gap-3">
-            <Landmark className="mt-0.5 h-5 w-5 shrink-0 text-[#1117E8]" aria-hidden="true" />
+            <Landmark
+              className="mt-0.5 h-5 w-5 shrink-0 text-[#1117E8]"
+              aria-hidden="true"
+            />
             <p className="text-sm leading-6 text-[#454557]">
               <strong className="text-[#191C1E]">FIRS submission:</strong>{" "}
               Optional for users who have completed their FIRS API credentials.

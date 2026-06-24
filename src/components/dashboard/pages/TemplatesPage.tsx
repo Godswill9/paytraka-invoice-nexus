@@ -60,6 +60,7 @@ export function TemplatesPage() {
       )
     : 0;
   const total = exclusive + vat;
+  const irn = "IRN-2026-0004"; // Sample IRN for demonstration
 
   return (
     <>
@@ -177,6 +178,7 @@ export function TemplatesPage() {
             exclusive={exclusive}
             vat={vat}
             total={total}
+            irn={irn}
           />
         </Card>
       </div>
@@ -220,6 +222,7 @@ function InvoiceDocument({
   exclusive,
   vat,
   total,
+  irn,
 }: {
   companyName: string;
   logoUrl?: string | null;
@@ -234,6 +237,7 @@ function InvoiceDocument({
   exclusive: number;
   vat: number;
   total: number;
+  irn?: string;
 }) {
   return (
     <article
@@ -251,6 +255,9 @@ function InvoiceDocument({
             </p>
             <p>
               <b>Date:</b> 20-06-2026
+            </p>
+            <p>
+              <b>IRN:</b> ${irn}
             </p>
             <p>
               <b>Due Date:</b> 04-07-2026
@@ -271,9 +278,9 @@ function InvoiceDocument({
               <p className="text-xl font-black uppercase leading-tight">
                 {companyName}
               </p>
-              <p className="mt-1 text-xs font-semibold text-[#66728A]">
+              {/* <p className="mt-1 text-xs font-semibold text-[#66728A]">
                 Company Letterhead
-              </p>
+              </p> */}
             </div>
           )}
         </div>
@@ -283,7 +290,9 @@ function InvoiceDocument({
         <div>
           <p className="text-xs font-black uppercase tracking-wide">From:</p>
           <h2 className="mt-2 font-black uppercase">{companyName}</h2>
-          {showTin ? <p className="mt-1">TIN: {tin || "31834758-0001"}</p> : null}
+          {showTin ? (
+            <p className="mt-1">TIN: {tin || "31834758-0001"}</p>
+          ) : null}
           <p className="mt-1 font-semibold">Postage Address:</p>
           <p className="mt-1 max-w-xs leading-6">
             18, Bolaji Akinloye Street, Road 4
@@ -337,8 +346,7 @@ function InvoiceDocument({
               const base = item.quantity * item.price;
               const exclusiveTotal = base * (1 - item.discount / 100);
               const inclusiveTotal =
-                exclusiveTotal *
-                (1 + (showVat ? item.vat : 0) / 100);
+                exclusiveTotal * (1 + (showVat ? item.vat : 0) / 100);
               return (
                 <tr
                   key={item.description}
@@ -346,9 +354,7 @@ function InvoiceDocument({
                 >
                   <td className="px-3 py-4 font-bold">{item.description}</td>
                   <td className="px-3 py-4 text-center">{item.quantity}</td>
-                  <td className="px-3 py-4 text-right">
-                    {money(item.price)}
-                  </td>
+                  <td className="px-3 py-4 text-right">{money(item.price)}</td>
                   <td className="px-3 py-4 text-right">
                     {item.discount.toFixed(2)}%
                   </td>
@@ -402,7 +408,10 @@ function InvoiceDocument({
             <p className="mt-1 text-[#66728A]">{footerNote}</p>
           </div>
         ) : null}
-        <div className="relative overflow-hidden border-t-[3px] pt-5" style={{ borderColor: brandColor }}>
+        <div
+          className="relative overflow-hidden border-t-[3px] pt-5"
+          style={{ borderColor: brandColor }}
+        >
           <div className="flex flex-col gap-3 pr-0 text-[9px] text-[#66728A] sm:flex-row sm:items-center sm:gap-4 sm:pr-36">
             <span className="inline-flex items-center gap-1">
               <Phone className="h-3 w-3 text-red-700" /> +234 705 203 4019
@@ -414,7 +423,10 @@ function InvoiceDocument({
               <Globe2 className="h-3 w-3 text-cyan-600" /> www.company.com
             </span>
           </div>
-          <div className="mt-5 h-14 sm:absolute sm:-bottom-5 sm:right-0 sm:mt-0 sm:w-32" style={{ backgroundColor: brandColor }}>
+          <div
+            className="mt-5 h-14 sm:absolute sm:-bottom-5 sm:right-0 sm:mt-0 sm:w-32"
+            style={{ backgroundColor: brandColor }}
+          >
             <div className="h-full w-14 -skew-x-[40deg] bg-amber-400" />
           </div>
         </div>

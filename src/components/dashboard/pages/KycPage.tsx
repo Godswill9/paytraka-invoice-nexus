@@ -122,9 +122,7 @@ function Toggle({
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={`flex w-full items-center justify-between rounded-xl border p-4 text-left transition ${
-        checked
-          ? "border-[#1117E8] bg-[#EEF1FF]"
-          : "border-[#C5C4DA] bg-white"
+        checked ? "border-[#1117E8] bg-[#EEF1FF]" : "border-[#C5C4DA] bg-white"
       } disabled:cursor-not-allowed disabled:opacity-70`}
     >
       <span>
@@ -340,11 +338,7 @@ export function MyCompanyPage() {
           </div>
           <div className="grid gap-5 md:grid-cols-2">
             <Field label="Company Name">
-              <input
-                className={inputClass}
-                value={form.companyName}
-                disabled
-              />
+              <input className={inputClass} value={form.companyName} disabled />
             </Field>
             <Field label="Business Email">
               <input
@@ -378,26 +372,18 @@ export function MyCompanyPage() {
                 onChange={(event) =>
                   setForm({
                     ...form,
-                    businessPhone: event.target.value
-                      .replace(/\D/g, "")
-                      .slice(0, 13),
+                    businessPhone: event.target.value,
+                    // .replace(/\D/g, "")
+                    // .slice(0, 13),
                   })
                 }
               />
             </Field>
             <Field label="Tax Identification Number">
-              <input
-                className={inputClass}
-                value={form.taxId}
-                disabled
-              />
+              <input className={inputClass} value={form.taxId} disabled />
             </Field>
             <Field label="CAC / RC Number">
-              <input
-                className={inputClass}
-                value={form.rcNumber}
-                disabled
-              />
+              <input className={inputClass} value={form.rcNumber} disabled />
             </Field>
             <Field label="City">
               <input
@@ -444,10 +430,7 @@ export function MyCompanyPage() {
               </select>
             </Field>
             {(["country"] as const).map((key) => (
-              <Field
-                key={key}
-                label={key[0].toUpperCase() + key.slice(1)}
-              >
+              <Field key={key} label={key[0].toUpperCase() + key.slice(1)}>
                 <input
                   className={inputClass}
                   value={form[key]}
@@ -536,7 +519,9 @@ export function MyCompanyPage() {
                         <textarea
                           className={`${inputClass} h-28 py-3 pr-12`}
                           value={
-                            alreadyProvided && !visible ? "••••••••••••" : form[key]
+                            alreadyProvided && !visible
+                              ? "••••••••••••"
+                              : form[key]
                           }
                           disabled={alreadyProvided || !editUnlocked}
                           onChange={(event) =>
@@ -564,7 +549,9 @@ export function MyCompanyPage() {
                             })
                           }
                           className="absolute right-3 top-3 text-[#757588]"
-                          aria-label={visible ? `Hide ${label}` : `View ${label}`}
+                          aria-label={
+                            visible ? `Hide ${label}` : `View ${label}`
+                          }
                         >
                           {visible ? (
                             <EyeOff className="h-5 w-5" />

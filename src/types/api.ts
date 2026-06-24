@@ -260,6 +260,7 @@ export interface SalesInvoice {
   company_name?: string;
   line_items?: InvoiceLineItem[];
   status?: string;
+  irn?: string;
   reference_invoice_id?: string;
   firs_status?: string;
   firs_response?: string | Record<string, unknown>;
