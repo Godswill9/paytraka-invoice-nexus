@@ -1,6 +1,6 @@
 "use client";
 
-import { Banknote, CheckCircle2, Download, Eye, ReceiptText, Search, X } from "lucide-react";
+import { Banknote, CalendarDays, CheckCircle2, CreditCard, Download, Eye, FileText, ReceiptText, Search, ShieldCheck, UserRound, X } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
 import { Pagination } from "@/components/ui/Pagination";
@@ -120,16 +120,22 @@ export function ReceiptsPage() {
       style: "currency",
       currency: record.currency || invoice?.currency || "NGN",
     }).format(Number(record.amount_paid));
+    const invoiceReference = invoice?.invoice_number ?? record.sales_invoice_id;
+    const customerName = customer?.name ?? "Customer";
+    const paymentLabel = paymentMethodLabel(record.payment_method);
     const documentHtml = `<!doctype html>
 <html><head><meta charset="utf-8"><title>Receipt ${escapeHtml(record.id)}</title>
-<style>body{font-family:Arial,sans-serif;color:#191c1e;padding:40px;max-width:760px;margin:auto}.brand{color:#1117e8;font-size:28px;font-weight:800}.card{border:1px solid #d7dee8;border-radius:16px;padding:24px;margin-top:24px}.amount{font-size:32px;font-weight:800;color:#1117e8}.row{display:flex;justify-content:space-between;gap:24px;padding:12px 0;border-bottom:1px solid #eef1f5}.row:last-child{border:0}.muted{color:#66728a}.footer{margin-top:28px;font-size:11px;color:#98a0ad;text-align:center}</style>
-</head><body><div class="brand">${escapeHtml(companyName)}</div><p class="muted">Payment receipt</p><div class="card"><p class="muted">Amount received</p><div class="amount">${escapeHtml(amount)}</div>
-<div class="row"><b>Receipt ID</b><span>${escapeHtml(record.id)}</span></div>
-<div class="row"><b>Invoice</b><span>${escapeHtml(invoice?.invoice_number ?? record.sales_invoice_id)}</span></div>
-<div class="row"><b>Customer</b><span>${escapeHtml(customer?.name ?? "Customer")}</span></div>
-<div class="row"><b>Payment method</b><span>${escapeHtml(paymentMethodLabel(record.payment_method))}</span></div>
-<div class="row"><b>Payment date</b><span>${escapeHtml(formatDate(record.payment_date))}</span></div>
-<div class="row"><b>Note</b><span>${escapeHtml(record.note || "—")}</span></div></div><p class="footer">This document was generated from PayTraka.</p></body></html>`;
+<style>
+*{box-sizing:border-box}body{font-family:Inter,Arial,sans-serif;color:#191c1e;background:#f4f6f8;margin:0;padding:32px}.receipt{max-width:820px;margin:0 auto;background:#fff;border:1px solid #d7dee8;border-radius:18px;overflow:hidden;box-shadow:0 18px 45px rgba(25,28,30,.08)}.header{display:flex;justify-content:space-between;gap:28px;padding:32px;border-bottom:1px solid #d7dee8;background:#fbfcff}.brand{color:#1117e8;font-size:28px;font-weight:850;letter-spacing:0}.label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:#66728a}.title{margin:8px 0 0;font-size:18px;font-weight:800}.badge{display:inline-flex;border-radius:999px;background:#dcfce7;color:#166534;padding:7px 12px;font-size:12px;font-weight:800}.body{padding:32px}.amountBox{border:1px solid #c9cdff;background:#eef1ff;border-radius:16px;padding:22px;margin-bottom:24px}.amount{margin:8px 0 0;color:#0001b1;font-size:38px;font-weight:900}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.panel{border:1px solid #d7dee8;border-radius:14px;padding:18px}.row{display:flex;justify-content:space-between;gap:24px;padding:12px 0;border-bottom:1px solid #eef1f5}.row:last-child{border:0}.row b{color:#66728a;font-size:12px;text-transform:uppercase}.row span{text-align:right;font-weight:750}.note{margin-top:20px;border-top:1px solid #eef1f5;padding-top:18px;color:#454557;line-height:1.65}.footer{display:flex;justify-content:space-between;gap:20px;padding:20px 32px;border-top:1px solid #d7dee8;color:#66728a;font-size:12px;background:#fbfcff}@media(max-width:680px){body{padding:12px}.header,.footer{flex-direction:column}.grid{grid-template-columns:1fr}.amount{font-size:30px}}@media print{body{background:#fff;padding:0}.receipt{box-shadow:none;border-radius:0;border:0}.badge{border:1px solid #86efac}.footer{break-inside:avoid}}
+</style>
+</head><body><main class="receipt">
+<section class="header"><div><div class="brand">${escapeHtml(companyName)}</div><p class="title">Official Payment Receipt</p></div><div><p class="label">Receipt number</p><p class="title">${escapeHtml(record.id)}</p><span class="badge">Paid</span></div></section>
+<section class="body"><div class="amountBox"><p class="label">Amount paid</p><div class="amount">${escapeHtml(amount)}</div></div>
+<div class="grid"><div class="panel"><p class="label">Customer details</p><div class="row"><b>Customer</b><span>${escapeHtml(customerName)}</span></div><div class="row"><b>Invoice</b><span>${escapeHtml(invoiceReference)}</span></div><div class="row"><b>Receipt date</b><span>${escapeHtml(formatDate(record.payment_date))}</span></div></div>
+<div class="panel"><p class="label">Payment details</p><div class="row"><b>Method</b><span>${escapeHtml(paymentLabel)}</span></div><div class="row"><b>Currency</b><span>${escapeHtml(record.currency || invoice?.currency || "NGN")}</span></div><div class="row"><b>Status</b><span>Paid</span></div></div></div>
+<p class="note"><b>Notes:</b> ${escapeHtml(record.note || "Payment received and recorded in PayTraka.")}</p></section>
+<section class="footer"><span>Generated from PayTraka Invoice Nexus</span><span>This receipt is suitable for customer payment records and internal reconciliation.</span></section>
+</main></body></html>`;
     const url = URL.createObjectURL(new Blob([documentHtml], { type: "text/html;charset=utf-8" }));
     const anchor = document.createElement("a");
     anchor.href = url;
@@ -355,25 +361,62 @@ function ReceiptDetailsDialog({
   onClose: () => void;
   onDownload: () => void;
 }) {
+  const paymentLabel = paymentMethodLabel(receipt.payment_method);
   return (
     <div className="fixed inset-0 z-[90] flex items-end justify-center overflow-hidden bg-[#191C1E]/45 p-0 backdrop-blur-sm sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="receipt-details-title" onMouseDown={onClose}>
       <Card className="flex max-h-[92dvh] w-full max-w-xl flex-col overflow-hidden rounded-b-none shadow-2xl sm:rounded-2xl" onMouseDown={(event) => event.stopPropagation()}>
         <div className="flex items-start justify-between gap-4 border-b border-[#C5C4DA] bg-[#F7F9FB] p-4 sm:p-6">
-          <div><p className="text-sm font-bold text-[#0001B1]">PAYMENT RECEIPT</p><h2 id="receipt-details-title" className="mt-1 break-all text-xl font-extrabold sm:text-2xl">{receipt.id}</h2></div>
+          <div className="flex min-w-0 gap-4">
+            <span className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#DADEFD] text-[#0001B1] sm:flex">
+              <ReceiptText className="h-6 w-6" aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-xs font-bold uppercase tracking-wide text-[#0001B1]">Payment receipt</p>
+              <h2 id="receipt-details-title" className="mt-1 break-all text-xl font-extrabold sm:text-2xl">{receipt.id}</h2>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <StatusBadge tone="success"><ShieldCheck className="mr-1 h-3.5 w-3.5" aria-hidden="true" /> Paid</StatusBadge>
+                <StatusBadge tone="primary">{paymentLabel}</StatusBadge>
+              </div>
+            </div>
+          </div>
           <button type="button" onClick={onClose} aria-label="Close receipt details" className="rounded-lg p-2 text-[#454557] hover:bg-white"><X className="h-5 w-5" /></button>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
-          <div className="rounded-2xl bg-[#1117E8] p-5 text-white"><p className="text-sm font-semibold text-white/75">Amount received</p><p className="mt-2 text-3xl font-extrabold"><CurrencyAmount amount={receipt.amount_paid} currency={receipt.currency} /></p></div>
+          <div className="rounded-2xl bg-[#1117E8] p-5 text-white">
+            <p className="text-sm font-semibold text-white/75">Amount paid</p>
+            <p className="mt-2 text-3xl font-extrabold"><CurrencyAmount amount={receipt.amount_paid} currency={receipt.currency} /></p>
+          </div>
+          <div className="mt-5 grid gap-4 sm:grid-cols-3">
+            {[
+              [FileText, "Invoice", invoice?.invoice_number ?? receipt.sales_invoice_id],
+              [UserRound, "Customer", customerName ?? "Customer"],
+              [CalendarDays, "Payment date", formatDate(receipt.payment_date)],
+            ].map(([Icon, label, value]) => (
+              <div key={label as string} className="rounded-xl border border-[#DCE0E8] bg-white p-4">
+                <Icon className="h-5 w-5 text-[#1117E8]" aria-hidden="true" />
+                <p className="mt-4 text-xs font-bold uppercase text-[#757588]">{label as string}</p>
+                <p className="mt-1 break-words text-sm font-bold">{value as string}</p>
+              </div>
+            ))}
+          </div>
           <dl className="mt-5 divide-y divide-[#DCE0E8] rounded-xl border border-[#C5C4DA] px-4">
             {[
-              ["Invoice", invoice?.invoice_number ?? receipt.sales_invoice_id],
-              ["Customer", customerName ?? "Customer"],
-              ["Payment method", paymentMethodLabel(receipt.payment_method)],
-              ["Payment date", formatDate(receipt.payment_date)],
+              ["Receipt number", receipt.id],
+              ["Payment method", paymentLabel],
               ["Currency", receipt.currency],
-              ["Note", receipt.note || "—"],
+              ["Status", "Paid"],
+              ["Tax / fees", "Not specified"],
             ].map(([label, value]) => <div key={label} className="flex flex-col gap-1 py-3 sm:flex-row sm:justify-between sm:gap-6"><dt className="text-sm font-semibold text-[#757588]">{label}</dt><dd className="break-words text-sm font-bold sm:max-w-[65%] sm:text-right">{value}</dd></div>)}
           </dl>
+          <div className="mt-5 rounded-xl border border-[#DCE0E8] bg-[#F7F9FB] p-4">
+            <p className="flex items-center gap-2 text-sm font-bold text-[#191C1E]">
+              <CreditCard className="h-4 w-4 text-[#1117E8]" aria-hidden="true" />
+              Notes
+            </p>
+            <p className="mt-2 text-sm leading-6 text-[#454557]">
+              {receipt.note || "Payment received and recorded in PayTraka."}
+            </p>
+          </div>
         </div>
         <div className="flex flex-col-reverse gap-3 border-t border-[#C5C4DA] p-4 sm:flex-row sm:justify-end sm:p-6"><Button variant="secondary" onClick={onClose}>Close</Button><Button onClick={onDownload}><Download className="h-4 w-4" /> Download Receipt</Button></div>
       </Card>

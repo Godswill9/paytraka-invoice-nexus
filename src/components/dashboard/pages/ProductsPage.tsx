@@ -1,9 +1,14 @@
 "use client";
 
 import {
+  BadgeCheck,
+  Barcode,
+  Boxes,
   Download,
   Edit3,
   Eye,
+  FileText,
+  PackageCheck,
   Plus,
   Tags,
   Trash2,
@@ -894,6 +899,8 @@ function ProductDetailsModal({
   onClose: () => void;
 }) {
   const values = productToValues(product, categories);
+  const category = values.Category || "Uncategorized";
+  const isService = product.product_type === "service";
   return (
     <div
       className="fixed inset-0 z-[90] flex items-end justify-center overflow-hidden bg-[#191C1E]/45 p-0 backdrop-blur-sm sm:items-center sm:p-4"
@@ -906,12 +913,26 @@ function ProductDetailsModal({
         className="flex max-h-[92dvh] w-full max-w-2xl flex-col overflow-hidden rounded-b-none shadow-2xl sm:rounded-2xl"
         onMouseDown={(event) => event.stopPropagation()}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-[#C5C4DA] bg-[#F7F9FB] p-6">
-          <div>
-            <h2 id="product-details-title" className="text-2xl font-bold">
-              {product.name}
-            </h2>
-            <p className="mt-1 text-sm text-[#454557]">Catalog item details</p>
+        <div className="flex items-start justify-between gap-4 border-b border-[#C5C4DA] bg-[#F7F9FB] p-4 sm:p-6">
+          <div className="flex min-w-0 gap-4">
+            <span className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#DADEFD] text-[#0001B1] sm:flex">
+              {isService ? <FileText className="h-6 w-6" aria-hidden="true" /> : <PackageCheck className="h-6 w-6" aria-hidden="true" />}
+            </span>
+            <div className="min-w-0">
+              <p className="text-xs font-bold uppercase tracking-wide text-[#757588]">
+                {isService ? "Service profile" : "Product profile"}
+              </p>
+              <h2 id="product-details-title" className="mt-1 break-words text-2xl font-extrabold">
+                {product.name}
+              </h2>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <StatusBadge tone={product.status === "active" ? "success" : "neutral"}>
+                  <BadgeCheck className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
+                  {product.status}
+                </StatusBadge>
+                <StatusBadge tone="primary">{product.product_type}</StatusBadge>
+              </div>
+            </div>
           </div>
           <button
             type="button"
@@ -922,15 +943,72 @@ function ProductDetailsModal({
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div className="grid min-h-0 flex-1 gap-3 overflow-y-auto p-4 sm:grid-cols-2 sm:gap-4 sm:p-6">
-          {Object.entries(values).map(([label, value]) => (
-            <div key={label} className="rounded-xl bg-[#F1F4F8] p-4">
-              <p className="text-xs font-bold uppercase text-[#757588]">
-                {label}
-              </p>
-              <p className="mt-1 break-words font-bold">{value || "-"}</p>
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="rounded-xl border border-[#DCE0E8] bg-white p-4">
+              <Tags className="h-5 w-5 text-[#1117E8]" aria-hidden="true" />
+              <p className="mt-4 text-xs font-bold uppercase text-[#757588]">Category</p>
+              <p className="mt-1 break-words text-sm font-bold">{category}</p>
             </div>
-          ))}
+            <div className="rounded-xl border border-[#DCE0E8] bg-white p-4">
+              <Barcode className="h-5 w-5 text-[#1117E8]" aria-hidden="true" />
+              <p className="mt-4 text-xs font-bold uppercase text-[#757588]">SKU / HSN</p>
+              <p className="mt-1 break-words text-sm font-bold">
+                {[values.SKU, values["HSN code"]].filter(Boolean).join(" / ") || "-"}
+              </p>
+            </div>
+            <div className="rounded-xl border border-[#DCE0E8] bg-white p-4">
+              <Boxes className="h-5 w-5 text-[#1117E8]" aria-hidden="true" />
+              <p className="mt-4 text-xs font-bold uppercase text-[#757588]">Inventory</p>
+              <p className="mt-1 break-words text-sm font-bold">
+                {values["Track inventory"] === "yes" ? `${values["Stock quantity"] || 0} in stock` : "Not tracked"}
+              </p>
+            </div>
+          </div>
+          <div className="mt-5 rounded-xl border border-[#DCE0E8] bg-[#F7F9FB] p-4">
+            <p className="flex items-center gap-2 text-sm font-bold text-[#191C1E]">
+              <FileText className="h-4 w-4 text-[#1117E8]" aria-hidden="true" />
+              Description
+            </p>
+            <p className="mt-2 text-sm leading-6 text-[#454557]">
+              {values.Description || "No description provided for this catalog item."}
+            </p>
+          </div>
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <section className="rounded-xl border border-[#DCE0E8] bg-white p-4">
+              <h3 className="font-bold text-[#191C1E]">Pricing and tax</h3>
+              <dl className="mt-4 divide-y divide-[#DCE0E8]">
+                {[
+                  ["Unit price", `${values.Currency} ${Number(values["Unit price"] || 0).toLocaleString("en-NG")}`],
+                  ["Cost price", values["Cost price"] ? `${values.Currency} ${Number(values["Cost price"]).toLocaleString("en-NG")}` : "-"],
+                  ["VAT rate", values["Tax/VAT rate"] ? `${values["Tax/VAT rate"]}%` : "-"],
+                ].map(([label, value]) => (
+                  <div key={label} className="flex justify-between gap-4 py-3 text-sm">
+                    <dt className="font-semibold text-[#757588]">{label}</dt>
+                    <dd className="text-right font-bold text-[#191C1E]">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+            <section className="rounded-xl border border-[#DCE0E8] bg-white p-4">
+              <h3 className="font-bold text-[#191C1E]">Metadata</h3>
+              <dl className="mt-4 space-y-3">
+                {[
+                  ["Type", values["Product type"]],
+                  ["Status", values.Status],
+                  ["Currency", values.Currency],
+                ].map(([label, value]) => (
+                  <div key={label}>
+                    <dt className="text-[11px] font-bold uppercase tracking-wide text-[#757588]">{label}</dt>
+                    <dd className="mt-1 break-words text-sm font-semibold text-[#191C1E]">{value || "-"}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          </div>
+        </div>
+        <div className="flex flex-col-reverse gap-3 border-t border-[#C5C4DA] p-4 sm:flex-row sm:justify-end sm:p-6">
+          <Button variant="secondary" onClick={onClose}>Close</Button>
         </div>
       </Card>
     </div>

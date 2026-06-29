@@ -6,6 +6,7 @@ import {
   Building2,
   Check,
   CheckCircle2,
+  ClipboardList,
   CloudUpload,
   Code2,
   Download,
@@ -13,17 +14,26 @@ import {
   FileSearch,
   FileText,
   Gauge,
+  Globe2,
+  Handshake,
+  Home,
   KeyRound,
   Landmark,
   Linkedin,
+  LockKeyhole,
   Menu,
   MapPin,
   Mail,
+  PackageCheck,
   Phone,
   Search,
+  ReceiptText,
   Send,
   ShieldCheck,
+  Sparkles,
+  Target,
   UsersRound,
+  Zap,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -33,13 +43,16 @@ import { AuthNavActions } from "./AuthNavActions";
 
 type PageKey = "home" | "product" | "solutions" | "resources" | "company";
 
-const navLinks: Array<{ label: string; href: string; key: PageKey }> = [
-  { label: "Home", href: "/", key: "home" },
-  { label: "Product", href: "/product", key: "product" },
-  { label: "Solutions", href: "/solutions", key: "solutions" },
+const navLinks: Array<{ label: string; href: string; key: PageKey; icon: LucideIcon }> = [
+  { label: "Home", href: "/", key: "home", icon: Home },
+  { label: "Product", href: "/product", key: "product", icon: PackageCheck },
+  { label: "Solutions", href: "/solutions", key: "solutions", icon: ShieldCheck },
   // { label: "Resources", href: "/resources", key: "resources" },
-  { label: "Company", href: "/company", key: "company" },
+  { label: "Company", href: "/company", key: "company", icon: UsersRound },
 ];
+
+const CALENDLY_DEMO_URL =
+  "https://calendly.com/software-development-domain-plusltd/30min";
 
 const team = [
   {
@@ -73,15 +86,11 @@ const team = [
 ];
 
 const partners = [
-  { name: "hoptools", color: "#058220" },
-  { name: "REDTECH", color: "#D82737" },
-  { name: "e-transact", color: "#087A52" },
-  { name: "Cryptware", color: "#5B3DD1" },
-  { name: "NRS", color: "#C07700" },
-  { name: "Domain-PlusLTD", color: "#1117E8" },
-  // { name: "Alpha Software Solutions LTD", color: "#C07700" }
-  // { name: "Taxaide", color: "#444444" },
-  // { name: "Jureb", color: "#0474B8" },
+  { name: "Cryptware", logo: "/logos/cryptware.jfif" },
+  { name: "eTranzact", logo: "/logos/etransact.png" },
+  { name: "Hoptool", logo: "/logos/hoptool.jfif" },
+  { name: "NRS", logo: "/logos/nrs.jfif" },
+  { name: "Redtech", logo: "/logos/redtech.png" },
 ];
 // const partners = [
 //   { name: "hoptools", category: "Access Point", color: "#1117E8" },
@@ -96,24 +105,24 @@ const partners = [
 
 const values = [
   {
-    icon: "🔒",
+    icon: LockKeyhole,
     title: "Trust",
     body: "Transparent records every team member can verify",
   },
   {
-    icon: "⚡",
+    icon: Zap,
     title: "Simplicity",
     body: "Workflows designed for real businesses, not tax experts",
   },
   {
-    icon: "🇳🇬",
+    icon: Landmark,
     title: "Local first",
     body: "Built for Nigerian regulations, timelines and context",
   },
   {
-    icon: "📋",
+    icon: ClipboardList,
     title: "Control",
-    body: "You decide when invoices move forward — always",
+    body: "You decide when invoices move forward, always",
   },
 ];
 
@@ -264,30 +273,40 @@ function StaffSocials({ socials }: { socials: Record<string, string> }) {
 
 function PartnerTile({
   name,
-  category = "Technology partner",
-  color,
+  logo,
 }: {
   name: string;
-  category?: string;
-  color: string;
+  logo: string;
 }) {
   return (
-    <article className="group relative flex h-24 w-40 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#D7DEE8] bg-[#F7F9FB] transition-all duration-200">
-      {/* Default state */}
-      <div className="flex flex-col items-center transition-opacity duration-200 group-hover:opacity-0">
-        <span className="text-base font-bold tracking-tight" style={{ color }}>
-          {name}
-        </span>
-        <span className="mt-1 text-[11px] text-[#66728A]">{category}</span>
-      </div>
-      {/* Hover state */}
-      <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-[#1117E8] opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-        <div className="text-center">
-          <p className="text-sm font-semibold text-white">{name}</p>
-          <p className="mt-0.5 text-[11px] text-[#9FA6FF]">{category}</p>
-        </div>
-      </div>
+    <article className="flex h-24 w-44 flex-shrink-0 items-center justify-center rounded-xl border border-[#D7DEE8] bg-white px-6 shadow-sm transition hover:-translate-y-1 hover:border-[#1117E8] hover:shadow-md">
+      <Image
+        src={logo}
+        alt={`${name} logo`}
+        width={132}
+        height={56}
+        className="max-h-14 w-auto object-contain"
+      />
     </article>
+  );
+}
+
+function PartnersMarquee() {
+  const loop = [...partners, ...partners, ...partners];
+  return (
+    <div className="relative overflow-hidden">
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-20 bg-gradient-to-r from-white to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-20 bg-gradient-to-l from-white to-transparent" />
+      <div className="marquee-track flex w-max gap-5 py-2">
+        {loop.map((partner, index) => (
+          <PartnerTile
+            key={`${partner.name}-${index}`}
+            name={partner.name}
+            logo={partner.logo}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -321,13 +340,14 @@ export function SiteNavbar({ active }: { active: PageKey }) {
               key={link.key}
               href={link.href}
               className={cx(
-                "border-b-2 px-1 py-6 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1117E8]",
+                "inline-flex items-center gap-2 border-b-2 px-1 py-6 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1117E8]",
                 active === link.key
                   ? "border-[#1117E8] text-[#0001B1]"
                   : "border-transparent text-[#454557] hover:text-[#0001B1]",
               )}
               aria-current={active === link.key ? "page" : undefined}
             >
+              <link.icon className="h-4 w-4" aria-hidden="true" />
               {link.label}
             </a>
           ))}
@@ -348,10 +368,11 @@ export function SiteNavbar({ active }: { active: PageKey }) {
                   key={link.key}
                   href={link.href}
                   className={cx(
-                    "block rounded-lg px-3 py-3 text-sm font-medium hover:bg-[#F7F9FB]",
+                    "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium hover:bg-[#F7F9FB]",
                     active === link.key ? "text-[#0001B1]" : "text-[#191C1E]",
                   )}
                 >
+                  <link.icon className="h-4 w-4" aria-hidden="true" />
                   {link.label}
                 </a>
               ))}
@@ -460,16 +481,20 @@ function ActionLink({
   children,
   href = "#",
   variant = "primary",
+  external = false,
 }: {
   children: React.ReactNode;
   href?: string;
   variant?: "primary" | "secondary";
+  external?: boolean;
 }) {
   return (
     <a
       href={href}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noopener noreferrer" : undefined}
       className={cx(
-        "inline-flex min-h-12 max-w-full items-center justify-center rounded-lg px-6 text-center text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1117E8]",
+        "inline-flex min-h-12 max-w-full items-center justify-center gap-2 rounded-lg px-6 text-center text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1117E8]",
         variant === "primary"
           ? "bg-[#1117E8] text-white shadow-[0_12px_28px_rgba(17,23,232,0.18)] hover:bg-[#0001B1]"
           : "border border-[#D7DEE8] bg-white text-[#0001B1] hover:border-[#1117E8]",
@@ -504,14 +529,20 @@ export function ProductPage() {
     {
       icon: Building2,
       title: "Business Onboarding",
-      body: "Seamlessly register multiple business entities. Input key details, configure tax profiles, and map organizational structures with our guided, multi-step onboarding flow designed for minimal friction.",
-      meta: "Multi-entity Support Ready",
+      body: "Set up company, tax, customer, supplier, product, and service records once so every invoice starts from cleaner source data.",
+      meta: "Structured Setup",
     },
     {
       icon: UsersRound,
       title: "Customer & Supplier Management",
-      body: "Maintain a centralized directory of all your trading partners. Validate TINs instantly, manage contact details, and organize accounts to ensure every invoice generated is routed and reported accurately.",
-      meta: "Instant TIN Verification",
+      body: "Maintain a centralized directory of trading partners with contact details, TINs, RC numbers, preferred currencies, and billing context.",
+      meta: "Partner Records",
+    },
+    {
+      icon: ReceiptText,
+      title: "Receipts & Payment Tracking",
+      body: "Record customer payments against invoices, keep receipt history organized, and preserve the transaction trail your finance team needs.",
+      meta: "Payment Records",
     },
   ];
 
@@ -519,17 +550,32 @@ export function ProductPage() {
     <div className="public-theme min-h-screen bg-[#F7F9FB]">
       <SiteNavbar active="product" />
       <main>
-        <section className="soft-enter px-5 py-24 text-center md:px-8">
-          <h1 className="mx-auto max-w-4xl text-4xl font-extrabold leading-tight text-[#191C1E] md:text-6xl">
-            Comprehensive Tax Compliance Features
+        <section className="soft-enter border-b border-[#D7DEE8] bg-white px-5 py-20 md:px-8 md:py-24">
+          <div className="mx-auto max-w-7xl">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#C9CDFF] bg-[#EEF1FF] px-4 py-2 text-sm font-bold text-[#0001B1]">
+            <PackageCheck className="h-4 w-4" aria-hidden="true" />
+            PayTraka product suite
+          </span>
+          <h1 className="mt-7 max-w-5xl text-4xl font-extrabold leading-tight text-[#191C1E] md:text-6xl">
+            Invoicing, receipts, and tax-ready records in one workspace
           </h1>
-          <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-[#454557] md:text-xl md:leading-9">
-            PayTraka streamlines your entire invoicing and compliance workflow.
-            From business onboarding to FIRS/NRS validation, everything is
-            designed for accuracy, speed, and institutional trust.
+          <p className="mt-6 max-w-3xl text-lg leading-8 text-[#454557] md:text-xl md:leading-9">
+            PayTraka helps business owners, finance teams, and tax consultants
+            organize invoices, payments, customers, suppliers, products, and
+            compliance records without juggling spreadsheets.
           </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <ActionLink href="/signup">
+              Start using PayTraka <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </ActionLink>
+            <ActionLink href={CALENDLY_DEMO_URL} variant="secondary" external>
+              <Phone className="h-4 w-4" aria-hidden="true" />
+              Book Demo
+            </ActionLink>
+          </div>
+          </div>
         </section>
-        <section className="stagger-children mx-auto grid max-w-7xl gap-6 px-5 pb-24 md:grid-cols-3 md:px-8">
+        <section className="stagger-children mx-auto grid max-w-7xl gap-6 px-5 py-20 md:grid-cols-3 md:px-8">
           {cards.map(({ icon, title, body, meta }) => (
             <article
               key={title}
@@ -639,6 +685,24 @@ export function ProductPage() {
             </p>
           </article>
         </section>
+        <section className="bg-white px-5 py-20 md:px-8">
+          <div className="mx-auto max-w-7xl rounded-2xl bg-[#0D1230] p-6 text-white sm:p-8 lg:p-10">
+            <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
+              <div>
+                <h2 className="text-3xl font-extrabold">Ready to clean up your invoice workflow?</h2>
+                <p className="mt-3 max-w-2xl text-sm leading-7 text-[#C9CDE0]">
+                  Start with the records your team needs today, then expand
+                  into receipts, reporting, and compliance preparation as your
+                  finance process matures.
+                </p>
+              </div>
+              <ActionLink href={CALENDLY_DEMO_URL} external>
+                <Phone className="h-4 w-4" aria-hidden="true" />
+                Book Demo
+              </ActionLink>
+            </div>
+          </div>
+        </section>
       </main>
       <SimpleFooter />
     </div>
@@ -646,25 +710,42 @@ export function ProductPage() {
 }
 
 export function SolutionsPage() {
+  const useCases = [
+    [
+      BriefcaseBusiness,
+      "SMEs and business owners",
+      "Create official invoices, record payments, and keep customer billing history tidy.",
+    ],
+    [
+      UsersRound,
+      "Accountants and tax consultants",
+      "Manage client records, spot missing compliance information, and prepare reports faster.",
+    ],
+    [
+      Building2,
+      "Growing finance teams",
+      "Standardize invoice operations across customers, suppliers, products, and receipts.",
+    ],
+  ] as const;
   const pipeline = [
     [
-      "Draft",
-      "Create and save invoice details while edits are still allowed.",
+      "Capture",
+      "Set up business, customer, supplier, product, and tax details.",
       FileText,
     ],
     [
-      "Review",
-      "Confirm customer, line items, totals and tax information.",
+      "Create",
+      "Raise invoices and receipts from consistent records.",
       FileCheck2,
     ],
     [
-      "Posted",
-      "Finalize the invoice as an official business record.",
-      CheckCircle2,
+      "Review",
+      "Check totals, VAT, payment status, and missing information.",
+      FileSearch,
     ],
     [
-      "Downloaded",
-      "Export the posted invoice and share it outside PayTraka.",
+      "Export",
+      "Download clean documents and reports for sharing or filing.",
       Download,
     ],
   ] as const;
@@ -673,27 +754,69 @@ export function SolutionsPage() {
     <div className="public-theme min-h-screen bg-white">
       <SiteNavbar active="solutions" />
       <main>
-        <section className="soft-enter px-5 py-20 text-center md:px-8">
-          <span className="inline-flex rounded-full border border-[#C5C4DA] bg-[#EEF1FF] px-4 py-2 text-sm font-bold text-[#0001B1]">
-            FIRS Compliant Infrastructure
+        <section className="soft-enter border-b border-[#D7DEE8] bg-[#F7F9FB] px-5 py-20 md:px-8 md:py-24">
+          <div className="mx-auto max-w-7xl">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#C5C4DA] bg-white px-4 py-2 text-sm font-bold text-[#0001B1]">
+            <Handshake className="h-4 w-4" aria-hidden="true" />
+            Business finance solutions
           </span>
-          <h1 className="mx-auto mt-8 max-w-5xl text-4xl font-extrabold leading-tight text-[#121B3A] md:text-6xl">
-            Institutional Precision for{" "}
-            <span className="text-[#0001B1]">E-Invoicing Readiness</span>
+          <h1 className="mt-8 max-w-5xl text-4xl font-extrabold leading-tight text-[#121B3A] md:text-6xl">
+            Better invoice control for teams that need clean records and tax readiness
           </h1>
-          <p className="mx-auto mt-8 max-w-4xl text-lg leading-8 text-[#66728A] md:text-xl md:leading-9">
-            Create and post professional e-invoices without being forced into
-            FIRS submission. Download each document for external sharing, then
-            use the optional compliance pathway when your API setup is ready.
+          <p className="mt-7 max-w-3xl text-lg leading-8 text-[#66728A] md:text-xl md:leading-9">
+            PayTraka helps businesses replace scattered invoice files with a
+            structured workspace for billing, receipts, partner records,
+            product pricing, reporting, and optional FIRS/NRS preparation.
           </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <ActionLink href="/signup">
+              Get started <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </ActionLink>
+            <ActionLink href={CALENDLY_DEMO_URL} variant="secondary" external>
+              <Phone className="h-4 w-4" aria-hidden="true" />
+              Book Demo
+            </ActionLink>
+          </div>
+          </div>
+        </section>
+        <section className="mx-auto max-w-7xl px-5 py-20 md:px-8">
+          <div className="grid gap-8 lg:grid-cols-[0.72fr_minmax(0,1.28fr)]">
+            <div>
+              <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#1117E8]">
+                Who it helps
+              </p>
+              <h2 className="mt-4 text-3xl font-extrabold text-[#121B3A] md:text-4xl">
+                Practical workflows for finance-heavy businesses
+              </h2>
+              <p className="mt-4 text-base leading-7 text-[#66728A]">
+                Whether you invoice customers daily or prepare compliance packs
+                monthly, PayTraka gives your team one place to maintain the
+                records behind every transaction.
+              </p>
+            </div>
+            <div className="stagger-children grid gap-5 md:grid-cols-3">
+              {useCases.map(([Icon, title, body]) => (
+                <article
+                  key={title}
+                  className="interactive-card rounded-xl border border-[#D7DEE8] bg-white p-6 shadow-sm"
+                >
+                  <IconBadge icon={Icon} />
+                  <h3 className="mt-6 font-bold text-[#121B3A]">{title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-[#66728A]">
+                    {body}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </div>
         </section>
         <section className="mx-auto max-w-7xl px-5 pb-24 md:px-8">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-3xl font-bold text-[#121B3A]">
-              Document Lifecycle Pipeline
+              From transaction details to shareable records
             </h2>
             <p className="hidden font-bold text-[#66728A] sm:block">
-              Standard Operating Procedure
+              Standard operating workflow
             </p>
           </div>
           <div className="mt-8 rounded-xl border border-[#D7DEE8] bg-white p-8">
@@ -787,6 +910,23 @@ export function SolutionsPage() {
                 </div>
               </div>
             </article>
+          </div>
+          <div className="mt-10 rounded-2xl bg-[#1117E8] p-6 text-white sm:p-8 lg:p-10">
+            <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
+              <div>
+                <h2 className="text-3xl font-extrabold">
+                  See how PayTraka fits your workflow
+                </h2>
+                <p className="mt-3 max-w-2xl text-sm leading-7 text-white/80">
+                  Walk through customer records, invoice creation, receipts,
+                  reporting, and compliance readiness with the team.
+                </p>
+              </div>
+              <ActionLink href={CALENDLY_DEMO_URL} variant="secondary" external>
+                <Phone className="h-4 w-4" aria-hidden="true" />
+                Book Demo
+              </ActionLink>
+            </div>
           </div>
         </section>
       </main>
@@ -1027,12 +1167,8 @@ export function CompanyPage() {
             <div className="mt-12 grid gap-6 md:grid-cols-2">
               {/* Mission */}
               <div className="relative overflow-hidden rounded-[1.25rem] bg-[#0D1230] p-10">
-                <span
-                  className="mb-5 block text-4xl"
-                  role="img"
-                  aria-label="target"
-                >
-                  🎯
+                <span className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-white">
+                  <Target className="h-6 w-6" aria-hidden="true" />
                 </span>
                 <h3 className="text-2xl font-bold text-white">Our Mission</h3>
                 <p className="mt-4 text-base leading-8 text-[#C9CDE0]">
@@ -1041,20 +1177,16 @@ export function CompanyPage() {
                   and putting control back in the hands of finance teams.
                 </p>
                 <span
-                  className="absolute -bottom-6 -right-6 text-[120px] opacity-[0.06] leading-none select-none"
+                  className="absolute -bottom-6 -right-6 text-white/5"
                   aria-hidden="true"
                 >
-                  🎯
+                  <Target className="h-32 w-32" />
                 </span>
               </div>
               {/* Vision */}
               <div className="relative overflow-hidden rounded-[1.25rem] border border-[#D7DEE8] bg-[#F7F9FB] p-10">
-                <span
-                  className="mb-5 block text-4xl"
-                  role="img"
-                  aria-label="globe"
-                >
-                  🌍
+                <span className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-[#EEF1FF] text-[#1117E8]">
+                  <Globe2 className="h-6 w-6" aria-hidden="true" />
                 </span>
                 <h3 className="text-2xl font-bold text-[#121B3A]">
                   Our Vision
@@ -1066,27 +1198,23 @@ export function CompanyPage() {
                   reliable system.
                 </p>
                 <span
-                  className="absolute -bottom-6 -right-6 text-[120px] opacity-[0.04] leading-none select-none"
+                  className="absolute -bottom-6 -right-6 text-[#1117E8]/10"
                   aria-hidden="true"
                 >
-                  🌍
+                  <Globe2 className="h-32 w-32" />
                 </span>
               </div>
             </div>
 
             {/* Values */}
             <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {values.map(({ icon, title, body }) => (
+              {values.map(({ icon: Icon, title, body }) => (
                 <div
                   key={title}
                   className="rounded-2xl border border-[#D7DEE8] bg-[#F7F9FB] px-5 py-6 text-center"
                 >
-                  <span
-                    className="mb-3 block text-2xl"
-                    role="img"
-                    aria-label={title}
-                  >
-                    {icon}
+                  <span className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-white text-[#1117E8] shadow-sm">
+                    <Icon className="h-5 w-5" aria-hidden="true" />
                   </span>
                   <h4 className="text-sm font-semibold text-[#121B3A]">
                     {title}
@@ -1170,13 +1298,8 @@ export function CompanyPage() {
             </div>
           </div>
 
-          {/* Infinite scroll carousel */}
-          <div className="mt-12 overflow-hidden">
-            <div className="flex animate-[scroll_28s_linear_infinite] gap-5 hover:[animation-play-state:paused]">
-              {[...partners, ...partners].map((p, i) => (
-                <PartnerTile key={`${p.name}-${i}`} {...p} />
-              ))}
-            </div>
+          <div className="mx-auto mt-12 max-w-7xl px-5 md:px-8">
+            <PartnersMarquee />
           </div>
 
           {/* <div className="mx-auto mt-6 max-w-7xl px-5 md:px-8">

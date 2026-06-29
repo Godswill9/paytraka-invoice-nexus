@@ -1,4 +1,5 @@
 import {
+  ArrowRight,
   BadgeCheck,
   Banknote,
   Boxes,
@@ -9,10 +10,12 @@ import {
   FileText,
   FileWarning,
   Gauge,
+  Home,
   Headphones,
   Landmark,
   LayoutDashboard,
   Menu,
+  PackageCheck,
   ReceiptText,
   Send,
   ShieldCheck,
@@ -27,12 +30,15 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { AuthNavActions } from "./AuthNavActions";
 
 const navLinks = [
-  { label: "Home", href: "/" },
-  { label: "Product", href: "/product" },
-  { label: "Solutions", href: "/solutions" },
+  { label: "Home", href: "/", icon: Home },
+  { label: "Product", href: "/product", icon: PackageCheck },
+  { label: "Solutions", href: "/solutions", icon: ShieldCheck },
   // { label: "Resources", href: "/resources" },
-  { label: "Company", href: "/company" },
+  { label: "Company", href: "/company", icon: UsersRound },
 ];
+
+const CALENDLY_DEMO_URL =
+  "https://calendly.com/software-development-domain-plusltd/30min";
 
 const painPoints = [
   {
@@ -164,11 +170,13 @@ function ButtonLink({
   href = "#",
   variant = "primary",
   className = "",
+  external = false,
 }: {
   children: React.ReactNode;
   href?: string;
   variant?: "primary" | "secondary" | "light";
   className?: string;
+  external?: boolean;
 }) {
   const variants = {
     primary:
@@ -182,6 +190,8 @@ function ButtonLink({
     <a
       className={`inline-flex min-h-12 max-w-full items-center justify-center rounded-lg px-6 text-center text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1117E8] ${variants[variant]} ${className}`}
       href={href}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noopener noreferrer" : undefined}
     >
       {children}
     </a>
@@ -236,8 +246,9 @@ function Navbar() {
             <a
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-[#191C1E] transition hover:text-[#0001B1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1117E8]"
+              className="inline-flex items-center gap-2 text-sm font-medium text-[#191C1E] transition hover:text-[#0001B1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1117E8]"
             >
+              <link.icon className="h-4 w-4" aria-hidden="true" />
               {link.label}
             </a>
           ))}
@@ -257,8 +268,9 @@ function Navbar() {
                 <a
                   key={link.href}
                   href={link.href}
-                  className="block rounded-lg px-3 py-3 text-sm font-medium text-[#191C1E] hover:bg-[#F7F9FB] hover:text-[#0001B1]"
+                  className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-[#191C1E] hover:bg-[#F7F9FB] hover:text-[#0001B1]"
                 >
+                  <link.icon className="h-4 w-4" aria-hidden="true" />
                   {link.label}
                 </a>
               ))}
@@ -412,10 +424,19 @@ function HeroSection() {
             compliance reporting in one unified readiness portal.
           </p>
           <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-            <ButtonLink href="/signup">Get Started</ButtonLink>
+            <ButtonLink className="group gap-2" href="/signup">
+              Get Started
+              <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden="true" />
+            </ButtonLink>
             {/* <ButtonLink href="/signup">Start Free Trial</ButtonLink> */}
-            <ButtonLink href="/company#contact" variant="secondary">
-              Book a demo
+            <ButtonLink
+              href={CALENDLY_DEMO_URL}
+              variant="secondary"
+              className="gap-2"
+              external
+            >
+              <Headphones className="h-4 w-4" aria-hidden="true" />
+              Book Demo
             </ButtonLink>
           </div>
           <div className="mt-10 grid max-w-xl gap-5 text-[#191C1E] sm:grid-cols-3">
@@ -787,8 +808,12 @@ function FinalCTA() {
           streamline their tax workflows.
         </p>
         <div className="mt-9 flex flex-col justify-center gap-4 sm:flex-row">
-          <ButtonLink href="/signup">Get Started</ButtonLink>
-          <ButtonLink href="/company#contact" variant="secondary">
+          <ButtonLink className="gap-2" href="/signup">
+            <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+            Get Started
+          </ButtonLink>
+          <ButtonLink href={CALENDLY_DEMO_URL} variant="secondary" className="gap-2" external>
+            <Headphones className="h-4 w-4" aria-hidden="true" />
             Talk to Sales
           </ButtonLink>
         </div>
