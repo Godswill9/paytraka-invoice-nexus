@@ -102,12 +102,11 @@ export function SalesInvoicesPage() {
           ? response.message
           : JSON.stringify(response?.data ?? response),
       );
-    } catch (err: any) {
-      const message =
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
-        err?.message ||
-        "FIRS submission failed. Please try again.";
+    } catch (err: unknown) {
+      const message = getApiErrorMessage(
+        err,
+        "FIRS submission failed. Please try again.",
+      );
       setSubmissionResponse(message);
       // or if you have a toast/alert system:
       // toast.error(message);

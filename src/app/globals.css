@@ -166,6 +166,15 @@ body {
   }
 }
 
+@keyframes marqueeScroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-33.333%);
+  }
+}
+
 .soft-enter {
   animation: softScale 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
@@ -209,6 +218,14 @@ body {
 
 .progress-glow {
   animation: progressGlow 2.4s ease-in-out infinite;
+}
+
+.marquee-track {
+  animation: marqueeScroll 30s linear infinite;
+}
+
+.marquee-track:hover {
+  animation-play-state: paused;
 }
 
 .public-theme,

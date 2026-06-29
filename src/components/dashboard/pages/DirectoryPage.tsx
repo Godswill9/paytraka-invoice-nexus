@@ -2,11 +2,18 @@
 
 import {
   AlertTriangle,
+  BadgeCheck,
+  Building2,
+  CalendarClock,
+  ClipboardList,
   Download,
   Upload,
   Edit3,
   Eye,
+  Mail,
+  MapPin,
   Plus,
+  Phone,
   ShieldCheck,
   Trash2,
   Truck,
@@ -716,6 +723,53 @@ function RecordDetailsModal({
   record: { title: string; values: Record<string, string> };
   onClose: () => void;
 }) {
+  const values = record.values;
+  const isSupplier = "Supplier type" in values;
+  const type = values["Customer type"] || values["Supplier type"] || "business";
+  const email = values.Email || "-";
+  const phone =
+    values["Primary telephone (+country code)"] || values.Phone || "-";
+  const location =
+    [values.City, values.State, values.Country].filter(Boolean).join(", ") ||
+    values["Street name"] ||
+    "-";
+  const taxId = values["Tax ID/TIN"] || "Missing";
+  const rcNumber = values["RC Number"] || "Not provided";
+  const description = values.Description || "No business description provided.";
+  const sections = [
+    {
+      title: "Contact details",
+      icon: Phone,
+      rows: [
+        ["Email", email],
+        ["Phone", phone],
+        ["Secondary phone", values["Secondary telephone (+country code)"] || "-"],
+        ["Contact person", values["Contact person"] || "-"],
+      ],
+    },
+    {
+      title: "Business details",
+      icon: Building2,
+      rows: [
+        ["Type", type],
+        ["TIN", taxId],
+        ["RC number", rcNumber],
+        ["Currency", values["Preferred currency"] || "-"],
+        ["Payment terms", values["Payment terms"] || "-"],
+      ],
+    },
+    {
+      title: "Address",
+      icon: MapPin,
+      rows: [
+        ["Street", values["Street name"] || "-"],
+        ["City", values.City || "-"],
+        ["State / LGA", [values.State, values.LGA].filter(Boolean).join(" / ") || "-"],
+        ["Country", values.Country || "-"],
+        ["Postal zone", values["Postal zone"] || "-"],
+      ],
+    },
+  ];
   return (
     <div
       className="fixed inset-0 z-[90] flex items-end justify-center overflow-hidden bg-[#191C1E]/45 p-0 backdrop-blur-sm sm:items-center sm:p-4"
@@ -729,13 +783,25 @@ function RecordDetailsModal({
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="flex shrink-0 items-start justify-between gap-4 border-b border-[#C5C4DA] bg-[#F7F9FB] p-4 sm:p-6">
-          <div>
-            <h2 id="record-details-title" className="text-2xl font-bold">
-              {record.title}
-            </h2>
-            <p className="mt-1 text-sm text-[#454557]">
-              Directory record details
-            </p>
+          <div className="flex min-w-0 gap-4">
+            <span className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#DADEFD] text-[#0001B1] sm:flex">
+              {isSupplier ? <Truck className="h-6 w-6" aria-hidden="true" /> : <Users className="h-6 w-6" aria-hidden="true" />}
+            </span>
+            <div className="min-w-0">
+              <p className="text-xs font-bold uppercase tracking-wide text-[#757588]">
+                {isSupplier ? "Supplier profile" : "Customer profile"}
+              </p>
+              <h2 id="record-details-title" className="mt-1 break-words text-2xl font-extrabold">
+                {record.title}
+              </h2>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <StatusBadge tone={taxId === "Missing" ? "warning" : "success"}>
+                  <BadgeCheck className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
+                  {taxId === "Missing" ? "TIN required" : "TIN on file"}
+                </StatusBadge>
+                <StatusBadge tone="primary">{type}</StatusBadge>
+              </div>
+            </div>
           </div>
           <button
             type="button"
@@ -746,18 +812,57 @@ function RecordDetailsModal({
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div className="grid min-h-0 flex-1 gap-3 overflow-y-auto p-4 sm:grid-cols-2 sm:gap-4 sm:p-6">
-          {Object.entries(record.values).map(([label, value]) => (
-            <div
-              key={label}
-              className="min-w-0 rounded-xl bg-[#F1F4F8] p-3 sm:p-4"
-            >
-              <p className="text-xs font-bold uppercase text-[#757588]">
-                {label}
-              </p>
-              <p className="mt-1 break-words font-bold">{value || "-"}</p>
-            </div>
-          ))}
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+          <div className="grid gap-4 md:grid-cols-3">
+            {[
+              [Mail, "Email", email],
+              [Phone, "Phone", phone],
+              [MapPin, "Location", location],
+            ].map(([Icon, label, value]) => (
+              <div key={label as string} className="rounded-xl border border-[#DCE0E8] bg-white p-4">
+                <Icon className="h-5 w-5 text-[#1117E8]" aria-hidden="true" />
+                <p className="mt-4 text-xs font-bold uppercase text-[#757588]">{label as string}</p>
+                <p className="mt-1 break-words text-sm font-bold">{value as string}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-5 rounded-xl border border-[#DCE0E8] bg-[#F7F9FB] p-4">
+            <p className="flex items-center gap-2 text-sm font-bold text-[#191C1E]">
+              <ClipboardList className="h-4 w-4 text-[#1117E8]" aria-hidden="true" />
+              Business summary
+            </p>
+            <p className="mt-2 text-sm leading-6 text-[#454557]">{description}</p>
+          </div>
+          <div className="mt-5 grid gap-4 lg:grid-cols-3">
+            {sections.map(({ title, icon: Icon, rows }) => (
+              <section key={title} className="rounded-xl border border-[#DCE0E8] bg-white p-4">
+                <h3 className="flex items-center gap-2 font-bold text-[#191C1E]">
+                  <Icon className="h-4 w-4 text-[#1117E8]" aria-hidden="true" />
+                  {title}
+                </h3>
+                <dl className="mt-4 space-y-3">
+                  {rows.map(([label, value]) => (
+                    <div key={label} className="min-w-0">
+                      <dt className="text-[11px] font-bold uppercase tracking-wide text-[#757588]">{label}</dt>
+                      <dd className="mt-1 break-words text-sm font-semibold text-[#191C1E]">{value || "-"}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </section>
+            ))}
+          </div>
+          <div className="mt-5 rounded-xl border border-[#C9CDFF] bg-[#EEF1FF] p-4">
+            <p className="flex items-center gap-2 text-sm font-bold text-[#0001B1]">
+              <CalendarClock className="h-4 w-4" aria-hidden="true" />
+              Recent activity
+            </p>
+            <p className="mt-2 text-sm leading-6 text-[#454557]">
+              This profile is available for invoices, receipts, exports, and compliance readiness checks.
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-col-reverse gap-3 border-t border-[#C5C4DA] p-4 sm:flex-row sm:justify-end sm:p-6">
+          <Button variant="secondary" onClick={onClose}>Close</Button>
         </div>
       </Card>
     </div>
